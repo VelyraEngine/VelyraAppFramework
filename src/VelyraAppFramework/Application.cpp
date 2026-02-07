@@ -10,6 +10,8 @@ namespace Velyra::App {
 
         const UP<Core::Context>& context = m_Window->createContext(appDesc.contextSettings);
         context->createImGuiContext(appDesc.imGuiSettings);
+
+        m_AppData.settings = Settings(appDesc.settings);
     }
 
     void Application::run() const {

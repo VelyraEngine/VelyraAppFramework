@@ -16,11 +16,15 @@ set(VELYRA_APP_FRAMEWORK_HEADERS
     include/VelyraAppFramework/AppData.hpp
     include/VelyraAppFramework/AppInclude.hpp
     include/VelyraAppFramework/Layer.hpp
+    include/VelyraAppFramework/Settings.hpp
+
+    src/VelyraAppFramework/LoggerNames.hpp
 )
 
 set(VELYRA_APP_FRAMEWORK_SRC
     src/VelyraAppFramework/Application.cpp
     src/VelyraAppFramework/AppData.cpp
+    src/VelyraAppFramework/Settings.cpp
 )
 
 add_library(VelyraAppFramework STATIC ${VELYRA_APP_FRAMEWORK_HEADERS} ${VELYRA_APP_FRAMEWORK_SRC})

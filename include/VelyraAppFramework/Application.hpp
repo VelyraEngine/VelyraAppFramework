@@ -6,12 +6,13 @@
 namespace Velyra::App {
 
     struct VL_API ApplicationDesc {
-        fs::path settingsPath = ""; // if empty, do not save settings
         bool enableMainMenuBar = false; // If true, shifts the UI down to make room for the ImGui main menu bar
 
         Core::WindowDesc windowSettings;
         Core::ContextDesc contextSettings;
         Core::ImGuiContextDesc imGuiSettings;
+
+        SettingsDesc settings;
     };
 
     class VL_API Application {
