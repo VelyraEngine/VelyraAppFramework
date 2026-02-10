@@ -18,6 +18,11 @@ set(VELYRA_APP_FRAMEWORK_HEADERS
     include/VelyraAppFramework/Layer.hpp
     include/VelyraAppFramework/Settings.hpp
 
+    include/VelyraAppFramework/LayoutEngine/LayoutEngine.hpp
+    include/VelyraAppFramework/LayoutEngine/LayoutDefinitions.hpp
+    include/VelyraAppFramework/LayoutEngine/LayoutDescription.hpp
+    include/VelyraAppFramework/LayoutEngine/LayoutNode.hpp
+
     src/VelyraAppFramework/LoggerNames.hpp
 )
 
@@ -25,6 +30,10 @@ set(VELYRA_APP_FRAMEWORK_SRC
     src/VelyraAppFramework/Application.cpp
     src/VelyraAppFramework/AppData.cpp
     src/VelyraAppFramework/Settings.cpp
+
+    src/VelyraAppFramework/LayoutEngine/LayoutEngine.cpp
+    src/VelyraAppFramework/LayoutEngine/LayoutNode.cpp
+    src/VelyraAppFramework/LayoutEngine/LayoutDescription.cpp
 )
 
 add_library(VelyraAppFramework STATIC ${VELYRA_APP_FRAMEWORK_HEADERS} ${VELYRA_APP_FRAMEWORK_SRC})
@@ -40,7 +49,8 @@ target_compile_definitions(VelyraAppFramework PRIVATE
 ################# Testing #################
 
 set(VELYRA_APP_FRAMEWORK_TEST_SRC
-    test/somefile.cpp
+    test/TestLayoutDescription.cpp
+    test/TestLayoutEngine.cpp
 )
 
 

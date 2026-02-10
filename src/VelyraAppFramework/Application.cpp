@@ -47,6 +47,7 @@ namespace Velyra::App {
             }
 
             // onImGui
+            m_AppData.layoutEngine.calculateLayout(0.0f, 0.0f, static_cast<float>(context->getClientWidth()), static_cast<float>(context->getClientHeight()));
             context->onImGuiBegin();
             for (const auto& layer: m_LayerStack) {
                 layer->onImGui(m_Window, context);
@@ -54,6 +55,8 @@ namespace Velyra::App {
             context->onImGuiEnd();
 
             context->endFrame();
+
+            context->swapBuffers();
         }
 
     }
