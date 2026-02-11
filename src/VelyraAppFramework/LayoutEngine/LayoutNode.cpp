@@ -60,7 +60,7 @@ namespace Velyra::App {
         ImGui::SetNextWindowViewport(viewport->ID);
         ImGui::SetNextWindowPos(ImVec2(position.x + viewport->Pos.x, position.y + viewport->Pos.y), ImGuiCond_Always);
         ImGui::SetNextWindowSize(size, ImGuiCond_Always);
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus;
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDocking;
         if (!m_Panel.resizable) {
             window_flags |= ImGuiWindowFlags_NoResize;
         }
@@ -75,14 +75,23 @@ namespace Velyra::App {
             return;
         }
         const ImVec2 newSize = ImGui::GetWindowSize();
-        const ImVec2 newPos = ImGui::GetWindowPos();
-        // Only handle resizes
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
-        const ImVec2 absolutePos = ImVec2(position.x + viewport->Pos.x, position.y + viewport->Pos.y);
-        if (!PIXEL_EQUAL(size, newSize) || !PIXEL_EQUAL(position, absolutePos)) {
+        const ImVec2 newPos = ImGui::GetWindowPos();
+
+        // Convert ImGui's absolute window position back into our local layout space
+        // so that comparisons are done in the same coordinate system.
+        const ImVec2 localNewPos = ImVec2(newPos.x - viewport->Pos.x, newPos.y - viewport->Pos.y);
+
+        // Only handle actual resizes / layout changes
+        if (!PIXEL_EQUAL(size, newSize) || !PIXEL_EQUAL(position, localNewPos)) {
             const Utils::LogPtr logger = Utils::getLogger(VL_APP_LAYOUT_LOGGER);
-            SPDLOG_LOGGER_INFO(logger, "Panel '{}' resized from size ({}, {}) at position ({}, {}) to size ({}, {}) at position ({}, {})",
-                                m_Panel.name, size.x, size.y, position.x, position.y, newSize.x, newSize.y, absolutePos.x, absolutePos.y);
+            SPDLOG_LOGGER_INFO(
+                logger,
+                "Panel '{}' resized from size ({}, {}) at local position ({}, {}) to size ({}, {}) at local position ({}, {})",
+                m_Panel.name,
+                size.x, size.y, position.x, position.y,
+                newSize.x, newSize.y, localNewPos.x, localNewPos.y
+            );
             /*
              * delta_size.x > 0  => increased left      delta_pos.x > 0  => increased right
              * delta_size.x < 0  => decreased left      delta_pos.x < 0  => decreased left
@@ -90,7 +99,7 @@ namespace Velyra::App {
              * delta_size.y < 0  => decreased bottom    delta_pos.y < 0  => increased top
              */
             const auto deltaSize = ImVec2(newSize.x - size.x, newSize.y - size.y);
-            const auto deltaPos = ImVec2(newPos.x - position.x, newPos.y - position.y);
+            const auto deltaPos = ImVec2(localNewPos.x - position.x, localNewPos.y - position.y);
 
             ResizeDirection direction = ResizeDirection::None;
             if (std::fabs(deltaSize.x) > 1e-4f) {

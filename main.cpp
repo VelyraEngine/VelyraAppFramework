@@ -63,7 +63,7 @@ int main(const int argc, char* argv[]) {
     try {
         App::ApplicationDesc desc;
         desc.windowSettings.title = "Application Demo";
-        desc.imGuiSettings.useViewports = false;
+        desc.imGuiSettings.useViewports = true;
 
         App::Application app(desc, args);
         app.push_layer<ExampleLayer>();
