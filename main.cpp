@@ -1,7 +1,21 @@
 #include <iostream>
 #include <VelyraAppFramework/Application.hpp>
+#include <VelyraAppFramework/Widgets/Popup.hpp>
 
 using namespace Velyra;
+
+class ExamplePopup: public App::Widgets::Popup {
+public:
+    explicit ExamplePopup(): App::Widgets::Popup("Example Popup") {}
+
+protected:
+    void drawContent() override {
+        ImGui::Text("This is an example popup!");
+        if (ImGui::Button("Close")) {
+            setOpen(false);
+        }
+    }
+};
 
 class ExampleLayer: public App::Layer {
 public:
@@ -32,6 +46,9 @@ public:
     void onImGui(const UP<Core::Window> &, const UP<Core::Context> &) override {
         m_AppData.layoutEngine.beginPanel("A");
         ImGui::Text("This is panel A");
+        if (ImGui::Button("Open Popup")) {
+            m_ExamplePopup.setOpen(true);
+        }
         m_AppData.layoutEngine.endPanel("A");
 
         m_AppData.layoutEngine.beginPanel("B");
@@ -53,7 +70,12 @@ public:
         m_AppData.layoutEngine.beginPanel("F");
         ImGui::Text("This is panel F");
         m_AppData.layoutEngine.endPanel("F");
+
+        m_ExamplePopup.draw();
     }
+
+private:
+    ExamplePopup m_ExamplePopup;
 };
 
 int main(const int argc, char* argv[]) {

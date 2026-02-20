@@ -23,6 +23,8 @@ set(VELYRA_APP_FRAMEWORK_HEADERS
     include/VelyraAppFramework/LayoutEngine/LayoutDescription.hpp
     include/VelyraAppFramework/LayoutEngine/LayoutNode.hpp
 
+    include/VelyraAppFramework/Widgets/Popup.hpp
+
     src/VelyraAppFramework/LoggerNames.hpp
 )
 
@@ -30,11 +32,13 @@ set(VELYRA_APP_FRAMEWORK_SRC
     src/VelyraAppFramework/Application.cpp
     src/VelyraAppFramework/AppData.cpp
     src/VelyraAppFramework/Settings.cpp
+    src/VelyraAppFramework/AppInclude.cpp
 
     src/VelyraAppFramework/LayoutEngine/LayoutEngine.cpp
     src/VelyraAppFramework/LayoutEngine/LayoutNode.cpp
     src/VelyraAppFramework/LayoutEngine/LayoutDescription.cpp
-    src/VelyraAppFramework/AppInclude.cpp
+
+    src/VelyraAppFramework/Widgets/Popup.cpp
 )
 
 add_library(VelyraAppFramework STATIC ${VELYRA_APP_FRAMEWORK_HEADERS} ${VELYRA_APP_FRAMEWORK_SRC})
