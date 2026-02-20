@@ -43,15 +43,13 @@ target_precompile_headers(VelyraAppFramework PRIVATE src/Pch.hpp)
 target_include_directories(VelyraAppFramework PUBLIC include)
 target_include_directories(VelyraAppFramework PRIVATE src) # For the PCH
 target_link_libraries(VelyraAppFramework PUBLIC VelyraCore)
-target_compile_definitions(VelyraAppFramework PRIVATE
-    $<$<CONFIG:Debug>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_INFO>
-    $<$<NOT:$<CONFIG:Debug>>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_INFO>)
 
 ################# Testing #################
 
 set(VELYRA_APP_FRAMEWORK_TEST_SRC
     test/TestLayoutDescription.cpp
     test/TestLayoutEngine.cpp
+    test/TestSettings.cpp
 )
 
 
