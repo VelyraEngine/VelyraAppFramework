@@ -34,6 +34,7 @@ set(VELYRA_APP_FRAMEWORK_SRC
     src/VelyraAppFramework/LayoutEngine/LayoutEngine.cpp
     src/VelyraAppFramework/LayoutEngine/LayoutNode.cpp
     src/VelyraAppFramework/LayoutEngine/LayoutDescription.cpp
+    src/VelyraAppFramework/AppInclude.cpp
 )
 
 add_library(VelyraAppFramework STATIC ${VELYRA_APP_FRAMEWORK_HEADERS} ${VELYRA_APP_FRAMEWORK_SRC})

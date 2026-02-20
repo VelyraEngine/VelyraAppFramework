@@ -8,11 +8,8 @@ namespace Velyra::App {
     struct VL_API ApplicationDesc {
         bool enableMainMenuBar = false; // If true, shifts the UI down to make room for the ImGui main menu bar
 
-        Core::WindowDesc windowSettings;
-        Core::ContextDesc contextSettings;
-        Core::ImGuiContextDesc imGuiSettings;
-
-        SettingsDesc settings;
+        bool settingsEnableSave = true;
+        std::string applicationName;
     };
 
     class VL_API Application {

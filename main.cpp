@@ -26,11 +26,10 @@ public:
         );
 
         m_AppData.layoutEngine.registerLayout("DEFAULT", layout);
+        m_AppData.layoutEngine.setActiveLayout("DEFAULT");
     }
 
     void onImGui(const UP<Core::Window> &, const UP<Core::Context> &) override {
-        m_AppData.layoutEngine.setActiveLayout("DEFAULT");
-
         m_AppData.layoutEngine.beginPanel("A");
         ImGui::Text("This is panel A");
         m_AppData.layoutEngine.endPanel("A");
@@ -62,8 +61,7 @@ int main(const int argc, char* argv[]) {
 
     try {
         App::ApplicationDesc desc;
-        desc.windowSettings.title = "Application Demo";
-        desc.imGuiSettings.useViewports = true;
+        desc.applicationName = "VelyraAppDemo";
 
         App::Application app(desc, args);
         app.push_layer<ExampleLayer>();

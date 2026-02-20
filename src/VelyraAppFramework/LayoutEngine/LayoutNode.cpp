@@ -84,14 +84,6 @@ namespace Velyra::App {
 
         // Only handle actual resizes / layout changes
         if (!PIXEL_EQUAL(size, newSize) || !PIXEL_EQUAL(position, localNewPos)) {
-            const Utils::LogPtr logger = Utils::getLogger(VL_APP_LAYOUT_LOGGER);
-            SPDLOG_LOGGER_INFO(
-                logger,
-                "Panel '{}' resized from size ({}, {}) at local position ({}, {}) to size ({}, {}) at local position ({}, {})",
-                m_Panel.name,
-                size.x, size.y, position.x, position.y,
-                newSize.x, newSize.y, localNewPos.x, localNewPos.y
-            );
             /*
              * delta_size.x > 0  => increased left      delta_pos.x > 0  => increased right
              * delta_size.x < 0  => decreased left      delta_pos.x < 0  => decreased left

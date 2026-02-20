@@ -6,12 +6,30 @@ namespace Velyra::App {
 
     Application::Application(const ApplicationDesc &appDesc, const ProgramArgs &programArgs):
     m_AppData(programArgs){
-        m_Window = Core::WindowFactory::createWindow(appDesc.windowSettings);
+        SettingsDesc settingsDesc;
+        settingsDesc.enableSave = appDesc.settingsEnableSave;
+        const std::string settingsFileName = "settings_" + appDesc.applicationName + ".json";
+        settingsDesc.settingsFilePath = get_appdata_path(appDesc.applicationName) / settingsFileName;
 
-        const UP<Core::Context>& context = m_Window->createContext(appDesc.contextSettings);
-        context->createImGuiContext(appDesc.imGuiSettings);
+        m_AppData.settings = Settings(settingsDesc);
 
-        m_AppData.settings = Settings(appDesc.settings);
+        Core::WindowDesc windowDesc;
+        windowDesc.width = m_AppData.settings.windowSettings.width;
+        windowDesc.height = m_AppData.settings.windowSettings.height;
+        windowDesc.title = appDesc.applicationName;
+        m_Window = Core::WindowFactory::createWindow(windowDesc);
+
+        Core::ContextDesc contextDesc;
+        contextDesc.api = m_AppData.settings.contextSettings.graphicsAPI;
+
+        const UP<Core::Context>& context = m_Window->createContext(contextDesc);
+        context->setVerticalSynchronisation(m_AppData.settings.contextSettings.enableVSync);
+
+        Core::ImGuiContextDesc imGuiDesc;
+        imGuiDesc.useDocking = m_AppData.settings.imGuiSettings.useDocking;
+        imGuiDesc.useViewports = m_AppData.settings.imGuiSettings.useViewports;
+        imGuiDesc.useImPlot = m_AppData.settings.imGuiSettings.useImPlot;
+        context->createImGuiContext(imGuiDesc);
     }
 
     void Application::run() const {

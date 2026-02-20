@@ -11,4 +11,6 @@ namespace Velyra::App {
 
     namespace fs = std::filesystem;
 
+    fs::path get_appdata_path(const std::string& app_name);
+
 }
