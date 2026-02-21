@@ -4,11 +4,11 @@ project(VelyraAppFramework DESCRIPTION "Small App Framework to quickly build ImG
 include(VelyraBuildUtils/VelyraBuildUtils.cmake)
 
 set(VELYRA_UTILS_PATH)
-include_or_fetch(VelyraUtils VELYRA_UTILS_PATH)
+vl_include_or_fetch(VelyraUtils VELYRA_UTILS_PATH)
 message(STATUS "VelyraUtils found at ${VELYRA_UTILS_PATH}")
 
 set(VELYRA_CORE_PATH)
-include_or_fetch(VelyraCore VELYRA_CORE_PATH)
+vl_include_or_fetch(VelyraCore VELYRA_CORE_PATH)
 message(STATUS "VelyraCore found at ${VELYRA_CORE_PATH}")
 
 set(VELYRA_APP_FRAMEWORK_HEADERS
@@ -42,7 +42,7 @@ set(VELYRA_APP_FRAMEWORK_SRC
 )
 
 add_library(VelyraAppFramework STATIC ${VELYRA_APP_FRAMEWORK_HEADERS} ${VELYRA_APP_FRAMEWORK_SRC})
-velyra_target_set_compile_flags(VelyraAppFramework)
+vl_target_set_compile_flags(VelyraAppFramework)
 target_precompile_headers(VelyraAppFramework PRIVATE src/Pch.hpp)
 target_include_directories(VelyraAppFramework PUBLIC include)
 target_include_directories(VelyraAppFramework PRIVATE src) # For the PCH
@@ -58,7 +58,7 @@ set(VELYRA_APP_FRAMEWORK_TEST_SRC
 
 
 if (BUILD_TESTING)
-    fetch_gtest()
+    vl_fetch_gtest()
 
     add_executable(TestVelyraAppFramework ${VELYRA_APP_FRAMEWORK_TEST_SRC})
     target_include_directories(TestVelyraAppFramework PUBLIC include)
