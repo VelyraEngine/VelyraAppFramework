@@ -86,7 +86,7 @@ int main(const int argc, char* argv[]) {
         desc.applicationName = "VelyraAppDemo";
 
         App::Application app(desc, args);
-        app.push_layer<ExampleLayer>();
+        app.pushLayer<ExampleLayer>();
         app.run();
 
     } catch (const std::exception& e) {

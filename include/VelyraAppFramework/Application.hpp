@@ -21,7 +21,7 @@ namespace Velyra::App {
         void run() const;
 
         template<typename T, typename... Args>
-        void push_layer(Args&&... args) {
+        void pushLayer(Args&&... args) {
             m_LayerStack.emplace_back(std::make_unique<T>(m_AppData, std::forward<Args>(args)...));
         }
 

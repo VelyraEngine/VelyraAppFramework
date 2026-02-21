@@ -35,6 +35,9 @@ namespace Velyra::App {
     void Application::run() const {
         VL_PRECONDITION(m_Window->getContext() != nullptr, "Context is null")
 
+        // Stop creating imgui.ini everywhere
+        ImGui::GetIO().IniFilename = nullptr;
+
         attachLayers();
         internalRun();
         detachLayers();

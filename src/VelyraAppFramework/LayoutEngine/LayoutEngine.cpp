@@ -44,6 +44,9 @@ namespace Velyra::App {
     }
 
     void LayoutEngine::calculateLayout(const float xPos, const float yPos, const float windowWidth, const float windowHeight) const {
+        if (m_ActiveLayout.empty()) {
+            return;
+        }
         const auto layoutIt = m_Layouts.find(m_ActiveLayout);
         if (layoutIt == m_Layouts.end()) {
             SPDLOG_LOGGER_ERROR(m_Logger, "Layout '{}' not found. Register first a layout for this name!", m_ActiveLayout);
