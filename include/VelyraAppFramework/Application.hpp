@@ -10,6 +10,7 @@ namespace Velyra::App {
 
         bool settingsEnableSave = true;
         std::string applicationName;
+        GitInfo gitInfo;
     };
 
     class VL_API Application {

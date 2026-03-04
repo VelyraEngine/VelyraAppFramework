@@ -6,7 +6,7 @@ namespace Velyra::App {
 
 #if defined(VL_PLATFORM_WINDOWS)
 
-    fs::path get_appdata_path(const std::string& app_name) {
+    fs::path getAppdataPath(const std::string& app_name) {
         const char* appdata = std::getenv("APPDATA");
         if (appdata) {
             fs::path path = appdata;
@@ -21,7 +21,7 @@ namespace Velyra::App {
 
 #elif defined(VL_PLATFORM_LINUX)
 
-    fs::path get_appdata_path(const std::string& app_name) {
+    fs::path getAppdataPath(const std::string& app_name) {
         const char* xdg = std::getenv("XDG_CONFIG_HOME");
         fs::path base;
         if (xdg) {

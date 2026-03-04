@@ -4,15 +4,23 @@
 
 namespace Velyra::App {
 
-    Application::Application(const ApplicationDesc &appDesc, const ProgramArgs &programArgs):
-    m_AppData(programArgs){
+    SettingsDesc createSettingsDesc(const ApplicationDesc& appDesc) {
         SettingsDesc settingsDesc;
         settingsDesc.enableSave = appDesc.settingsEnableSave;
         const std::string settingsFileName = "settings_" + appDesc.applicationName + ".json";
-        settingsDesc.settingsFilePath = get_appdata_path(appDesc.applicationName) / settingsFileName;
+        settingsDesc.settingsFilePath = getAppdataPath(appDesc.applicationName) / settingsFileName;
+        settingsDesc.gitInfo = appDesc.gitInfo;
+        if (settingsDesc.gitInfo.saveToGit) {
+            if (settingsDesc.gitInfo.gitRepoPath.empty()) {
+                // save to default location if no path provided
+                settingsDesc.gitInfo.gitRepoPath = getAppdataPath(appDesc.applicationName) / "VelyraAppFrameworkData";
+            }
+        }
+        return settingsDesc;
+    }
 
-        m_AppData.settings = Settings(settingsDesc);
-
+    Application::Application(const ApplicationDesc &appDesc, const ProgramArgs &programArgs):
+    m_AppData(programArgs, createSettingsDesc(appDesc)){
         Core::WindowDesc windowDesc;
         windowDesc.width = m_AppData.settings.windowSettings.width;
         windowDesc.height = m_AppData.settings.windowSettings.height;

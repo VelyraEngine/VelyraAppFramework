@@ -11,7 +11,7 @@ namespace Velyra::App {
         Settings settings;
         LayoutEngine layoutEngine;
 
-        explicit AppData(const ProgramArgs& args) : programArgs(args) {}
+        AppData(const ProgramArgs& args, const SettingsDesc& settingsDesc) : programArgs(args), settings(settingsDesc) {}
     };
 
 }

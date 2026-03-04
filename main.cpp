@@ -17,11 +17,19 @@ protected:
     }
 };
 
+struct ExampleSetting {
+    unsigned int value = 0;
+
+    VL_GENERATE_JSON_SERIALIZER(ExampleSetting, value)
+};
+
 class ExampleLayer: public App::Layer {
 public:
     explicit ExampleLayer(App::AppData& app_data): App::Layer(app_data) {}
 
     void onAttach(const UP<Core::Window> &, const UP<Core::Context> &) override {
+        m_ExampleSetting = m_AppData.settings.getSetting<ExampleSetting>("ExampleSetting");
+
         using namespace Velyra::App;
 
         auto layout = createLayout(
@@ -43,6 +51,10 @@ public:
         m_AppData.layoutEngine.setActiveLayout("DEFAULT");
     }
 
+    void onDetach(const UP<Core::Window> &, const UP<Core::Context> &) override {
+        m_AppData.settings.setSetting("ExampleSetting", m_ExampleSetting);
+    }
+
     void onImGui(const UP<Core::Window> &, const UP<Core::Context> &) override {
         m_AppData.layoutEngine.beginPanel("A");
         ImGui::Text("This is panel A");
@@ -52,7 +64,13 @@ public:
         m_AppData.layoutEngine.endPanel("A");
 
         m_AppData.layoutEngine.beginPanel("B");
-        ImGui::Text("This is panel B");
+        ImGui::Text("Button was clicked %u times", m_ExampleSetting.value);
+        if (ImGui::Button("Increment!")) {
+            m_ExampleSetting.value++;
+        }
+        if (ImGui::Button("Reset")) {
+            m_ExampleSetting.value = 0;
+        }
         m_AppData.layoutEngine.endPanel("B");
 
         m_AppData.layoutEngine.beginPanel("C");
@@ -76,6 +94,7 @@ public:
 
 private:
     ExamplePopup m_ExamplePopup;
+    ExampleSetting m_ExampleSetting;
 };
 
 int main(const int argc, char* argv[]) {
@@ -84,6 +103,11 @@ int main(const int argc, char* argv[]) {
     try {
         App::ApplicationDesc desc;
         desc.applicationName = "VelyraAppDemo";
+
+        // Git config to store settings to
+        desc.gitInfo.gitRepoPath = std::filesystem::current_path() / "SettingsRepo";
+        desc.gitInfo.ssh_string = "git@github-personal:artick788/AppStorage.git";
+        desc.gitInfo.saveToGit = true;
 
         App::Application app(desc, args);
         app.pushLayer<ExampleLayer>();
