@@ -81,6 +81,10 @@ namespace Velyra::App {
             for (const auto& layer: m_LayerStack) {
                 layer->onImGui(m_Window, context);
             }
+            // Draw popups on top of everything else
+            for (const auto& popup: m_AppData.m_Popups) {
+                popup->draw();
+            }
             context->onImGuiEnd();
 
             context->endFrame();

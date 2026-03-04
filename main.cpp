@@ -28,8 +28,13 @@ public:
     explicit ExampleLayer(App::AppData& app_data): App::Layer(app_data) {}
 
     void onAttach(const UP<Core::Window> &, const UP<Core::Context> &) override {
+        // Settings
         m_ExampleSetting = m_AppData.settings.getSetting<ExampleSetting>("ExampleSetting");
 
+        // Popups
+        m_AppData.addPopup(m_ExamplePopup);
+
+        // Layout
         using namespace Velyra::App;
 
         auto layout = createLayout(
@@ -59,7 +64,7 @@ public:
         m_AppData.layoutEngine.beginPanel("A");
         ImGui::Text("This is panel A");
         if (ImGui::Button("Open Popup")) {
-            m_ExamplePopup.setOpen(true);
+            m_ExamplePopup->setOpen(true);
         }
         m_AppData.layoutEngine.endPanel("A");
 
@@ -88,12 +93,10 @@ public:
         m_AppData.layoutEngine.beginPanel("F");
         ImGui::Text("This is panel F");
         m_AppData.layoutEngine.endPanel("F");
-
-        m_ExamplePopup.draw();
     }
 
 private:
-    ExamplePopup m_ExamplePopup;
+    SP<ExamplePopup> m_ExamplePopup = createSP<ExamplePopup>();
     ExampleSetting m_ExampleSetting;
 };
 
