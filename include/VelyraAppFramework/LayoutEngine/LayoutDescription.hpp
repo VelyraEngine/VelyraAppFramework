@@ -35,11 +35,11 @@ namespace Velyra::App {
     };
 
     struct VL_API Split: public Node {
-        std::vector<UP<Node>> children;
+        std::vector<SP<Node>> children;
 
         template<typename... NODES>
-        explicit Split(const NodeType type, NODES... nodes): Node(type) {
-            (children.push_back(std::move(nodes)), ...);
+        explicit Split(const NodeType type, NODES&&... nodes): Node(type) {
+            (children.push_back(std::forward<NODES>(nodes)), ...);
         }
 
         ~Split() override = default;
@@ -49,18 +49,18 @@ namespace Velyra::App {
         return createUP<PanelNode>(desc);
     }
 
-    inline UP<Node> createLayout(UP<Node> root) {
+    inline SP<Node> createLayout(SP<Node> root) {
         return root;
     }
 
     template<typename... NODES>
-    UP<Node> horizontalSplit(NODES... nodes) {
-        return createUP<Split>(NodeType::HorizontalSplit, std::move(nodes)...);
+    UP<Node> horizontalSplit(NODES&&... nodes) {
+        return createUP<Split>(NodeType::HorizontalSplit, std::forward<NODES>(nodes)...);
     }
 
     template<typename... NODES>
-    UP<Node> verticalSplit(NODES... nodes) {
-        return createUP<Split>(NodeType::VerticalSplit, std::move(nodes)...);
+    UP<Node> verticalSplit(NODES&&... nodes) {
+        return createUP<Split>(NodeType::VerticalSplit, std::forward<NODES>(nodes)...);
     }
 
 }

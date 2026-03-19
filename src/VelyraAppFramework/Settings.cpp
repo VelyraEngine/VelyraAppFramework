@@ -15,9 +15,11 @@ namespace Velyra::App {
     m_Logger(Utils::getLogger(VL_APP_SETTINGS_LOGGER)),
     m_GitInfo(desc.gitInfo),
     m_SettingsFilePath(desc.settingsFilePath){
-        const bool loadedFromGit = tryLoadFromGit();
-        if (loadedFromGit) {
-            return; // If we successfully loaded from git, we can return early and skip loading from local file, which could be outdated
+        if (desc.gitInfo.saveToGit) {
+            const bool loadedFromGit = tryLoadFromGit();
+            if (loadedFromGit) {
+                return; // If we successfully loaded from git, we can return early and skip loading from local file, which could be outdated
+            }
         }
         // else just load from local file if it exists,
         if (fs::is_regular_file(desc.settingsFilePath)) {

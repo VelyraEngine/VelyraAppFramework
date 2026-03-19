@@ -37,8 +37,9 @@ public:
         // Layout
         using namespace Velyra::App;
 
+
         auto layout = createLayout(
-        horizontalSplit(
+            horizontalSplit(
                 verticalSplit(
                     createPanel({.name = "A", .sizeRatio = 0.2f}),
                     createPanel({.name = "B", .sizeRatio = 0.4f}),
@@ -110,7 +111,7 @@ int main(const int argc, char* argv[]) {
         // Git config to store settings to
         desc.gitInfo.gitRepoPath = std::filesystem::current_path() / "SettingsRepo";
         desc.gitInfo.ssh_string = "git@github-personal:artick788/AppStorage.git";
-        desc.gitInfo.saveToGit = true;
+        desc.gitInfo.saveToGit = false;
 
         App::Application app(desc, args);
         app.pushLayer<ExampleLayer>();

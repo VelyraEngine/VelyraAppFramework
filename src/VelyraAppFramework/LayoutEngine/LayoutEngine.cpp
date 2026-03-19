@@ -11,7 +11,7 @@ namespace Velyra::App {
 
     }
 
-    void LayoutEngine::registerLayout(const std::string &name, const UP<Node>& layout) {
+    void LayoutEngine::registerLayout(const std::string &name, const SP<Node>& layout) {
         m_Layouts[name] = createLayoutNode(layout, nullptr);
         m_Layouts[name]->calculateUnknownRatio();
     }
@@ -55,7 +55,7 @@ namespace Velyra::App {
         layoutIt->second->ratioToPixel(ImVec2(xPos, yPos), ImVec2(windowWidth, windowHeight));
     }
 
-    UP<LayoutNode> LayoutEngine::createLayoutNode(const UP<Node> &nodeDesc, LayoutNode *parent) {
+    UP<LayoutNode> LayoutEngine::createLayoutNode(const SP<Node> &nodeDesc, LayoutNode *parent) {
         switch (nodeDesc->type) {
             case NodeType::Panel: {
                 const auto panelDesc = static_cast<PanelNode*>(nodeDesc.get());

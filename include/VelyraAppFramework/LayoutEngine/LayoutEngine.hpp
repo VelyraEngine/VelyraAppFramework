@@ -16,7 +16,7 @@ namespace Velyra::App {
 
         ~LayoutEngine() = default;
 
-        void registerLayout(const std::string& name, const UP<Node>& layout);
+        void registerLayout(const std::string& name, const SP<Node>& layout);
 
         void setActiveLayout(const std::string& name);
 
@@ -38,13 +38,13 @@ namespace Velyra::App {
 
     private:
 
-        UP<LayoutNode> createLayoutNode(const UP<Node>& nodeDesc, LayoutNode* parent);
+        UP<LayoutNode> createLayoutNode(const SP<Node>& nodeDesc, LayoutNode* parent);
 
     private:
         Utils::LogPtr m_Logger;
 
         std::string m_ActiveLayout;
-        std::unordered_map<std::string, UP<LayoutNode>> m_Layouts;
+        std::unordered_map<std::string, SP<LayoutNode>> m_Layouts;
 
         VL_GET_PRIVATE_MEMBER(LayoutEngine, m_Layouts);
     };

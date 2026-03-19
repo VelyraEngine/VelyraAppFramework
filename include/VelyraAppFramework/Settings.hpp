@@ -16,7 +16,7 @@ namespace Velyra::App {
 
     struct VL_API ImGuiSettings {
         bool useDocking = false;
-        bool useViewports = true;
+        bool useViewports = false;
         bool useImPlot = false;
 
         VL_GENERATE_JSON_SERIALIZER(ImGuiSettings, useDocking, useViewports, useImPlot)
