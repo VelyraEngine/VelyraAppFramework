@@ -19,7 +19,7 @@ namespace Velyra::App::Widgets {
     }
 
     void Panel::draw() {
-        ImGui::SetNextWindowSize(s_DefaultWindowSize, ImGuiCond_Once);
+        ImGui::SetNextWindowSize(Styles::DefaultWindowSize, ImGuiCond_Once);
         ImGui::Begin(m_ImGuiLabel.c_str(), &m_Open);
         drawContent();
         ImGui::End();

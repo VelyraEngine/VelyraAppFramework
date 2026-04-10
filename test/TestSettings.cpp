@@ -20,14 +20,12 @@ TEST_F(TestSettings, CreateSettingsFromNonExistingFile) {
         EXPECT_EQ(settings.windowSettings.width, defaultWindowSettings.width);
         EXPECT_EQ(settings.windowSettings.height, defaultWindowSettings.height);
 
-        constexpr ImGuiSettings defaultImGuiSettings;
-        EXPECT_EQ(settings.imGuiSettings.useImPlot, defaultImGuiSettings.useImPlot);
-        EXPECT_EQ(settings.imGuiSettings.useViewports, defaultImGuiSettings.useViewports);
-        EXPECT_EQ(settings.imGuiSettings.useDocking, defaultImGuiSettings.useDocking);
-
         constexpr ContextSettings defaultContextSettings;
         EXPECT_EQ(settings.contextSettings.graphicsAPI, defaultContextSettings.graphicsAPI);
         EXPECT_EQ(settings.contextSettings.enableVSync, defaultContextSettings.enableVSync);
+        EXPECT_EQ(settings.contextSettings.useImPlot, defaultContextSettings.useImPlot);
+        EXPECT_EQ(settings.contextSettings.useViewports, defaultContextSettings.useViewports);
+        EXPECT_EQ(settings.contextSettings.useDocking, defaultContextSettings.useDocking);
     }
 
     // When going out of scope, the settings should be saved to the file
