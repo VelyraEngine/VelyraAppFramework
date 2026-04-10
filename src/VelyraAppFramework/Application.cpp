@@ -7,15 +7,9 @@ namespace Velyra::App {
     SettingsDesc createSettingsDesc(const ApplicationDesc& appDesc) {
         SettingsDesc settingsDesc;
         settingsDesc.enableSave = appDesc.settingsEnableSave;
+        settingsDesc.applicationName = appDesc.applicationName;
         const std::string settingsFileName = "settings_" + appDesc.applicationName + ".json";
         settingsDesc.settingsFilePath = getAppdataPath(appDesc.applicationName) / settingsFileName;
-        settingsDesc.gitInfo = appDesc.gitInfo;
-        if (settingsDesc.gitInfo.saveToGit) {
-            if (settingsDesc.gitInfo.gitRepoPath.empty()) {
-                // save to default location if no path provided
-                settingsDesc.gitInfo.gitRepoPath = getAppdataPath(appDesc.applicationName) / "VelyraAppFrameworkData";
-            }
-        }
         return settingsDesc;
     }
 
@@ -34,9 +28,9 @@ namespace Velyra::App {
         context->setVerticalSynchronisation(m_AppData.settings.contextSettings.enableVSync);
 
         Core::ImGuiContextDesc imGuiDesc;
-        imGuiDesc.useDocking = m_AppData.settings.imGuiSettings.useDocking;
-        imGuiDesc.useViewports = m_AppData.settings.imGuiSettings.useViewports;
-        imGuiDesc.useImPlot = m_AppData.settings.imGuiSettings.useImPlot;
+        imGuiDesc.useDocking = m_AppData.settings.contextSettings.useDocking;
+        imGuiDesc.useViewports = m_AppData.settings.contextSettings.useViewports;
+        imGuiDesc.useImPlot = m_AppData.settings.contextSettings.useImPlot;
         context->createImGuiContext(imGuiDesc);
     }
 

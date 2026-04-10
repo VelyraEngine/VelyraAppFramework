@@ -108,11 +108,6 @@ int main(const int argc, char* argv[]) {
         App::ApplicationDesc desc;
         desc.applicationName = "VelyraAppDemo";
 
-        // Git config to store settings to
-        desc.gitInfo.gitRepoPath = std::filesystem::current_path() / "SettingsRepo";
-        desc.gitInfo.ssh_string = "git@github-personal:artick788/AppStorage.git";
-        desc.gitInfo.saveToGit = false;
-
         App::Application app(desc, args);
         app.pushLayer<ExampleLayer>();
         app.run();
