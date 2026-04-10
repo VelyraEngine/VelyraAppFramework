@@ -17,6 +17,7 @@ set(VELYRA_APP_FRAMEWORK_HEADERS
     include/VelyraAppFramework/AppInclude.hpp
     include/VelyraAppFramework/Layer.hpp
     include/VelyraAppFramework/Settings.hpp
+    include/VelyraAppFramework/Styles.hpp
 
     include/VelyraAppFramework/LayoutEngine/LayoutEngine.hpp
     include/VelyraAppFramework/LayoutEngine/LayoutDefinitions.hpp
@@ -25,6 +26,7 @@ set(VELYRA_APP_FRAMEWORK_HEADERS
 
     include/VelyraAppFramework/Widgets/Popup.hpp
     include/VelyraAppFramework/Widgets/RegexInput.hpp
+    include/VelyraAppFramework/Widgets/Panel.hpp
 
     src/VelyraAppFramework/LoggerNames.hpp
 )
@@ -41,6 +43,7 @@ set(VELYRA_APP_FRAMEWORK_SRC
 
     src/VelyraAppFramework/Widgets/Popup.cpp
     src/VelyraAppFramework/Widgets/RegexInput.cpp
+    src/VelyraAppFramework/Widgets/Panel.cpp
 )
 
 add_library(VelyraAppFramework STATIC ${VELYRA_APP_FRAMEWORK_HEADERS} ${VELYRA_APP_FRAMEWORK_SRC})

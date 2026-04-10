@@ -1,6 +1,7 @@
 #include <iostream>
 #include <VelyraAppFramework/Application.hpp>
 #include <VelyraAppFramework/Widgets/Popup.hpp>
+#include <VelyraAppFramework/Widgets/Panel.hpp>
 
 using namespace Velyra;
 
@@ -14,6 +15,16 @@ protected:
         if (ImGui::Button("Close")) {
             setOpen(false);
         }
+    }
+};
+
+class ExamplePanel: public App::Widgets::Panel {
+public:
+    explicit ExamplePanel(App::AppData& app_data, const std::string& name): App::Widgets::Panel(app_data, name) {}
+
+protected:
+    void drawContent() override {
+        ImGui::Text("This is an example panel!");
     }
 };
 
@@ -66,6 +77,10 @@ public:
         ImGui::Text("This is panel A");
         if (ImGui::Button("Open Popup")) {
             m_ExamplePopup->setOpen(true);
+        }
+        if (ImGui::Button("Add new Panel")) {
+            const std::string panelName = "New Panel " + std::to_string(m_AppData.getPanelCount() + 1);
+            m_AppData.addPanel(createSP<ExamplePanel>(m_AppData, panelName));
         }
         m_AppData.layoutEngine.endPanel("A");
 

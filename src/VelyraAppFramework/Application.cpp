@@ -75,6 +75,10 @@ namespace Velyra::App {
             for (const auto& layer: m_LayerStack) {
                 layer->onImGui(m_Window, context);
             }
+            // Draw panels before popups so that popups are always on top
+            for (const auto &panel: m_AppData.m_Panels | std::views::values) {
+                panel->draw();
+            }
             // Draw popups on top of everything else
             for (const auto& popup: m_AppData.m_Popups) {
                 popup->draw();
