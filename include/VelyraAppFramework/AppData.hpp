@@ -34,6 +34,15 @@ namespace Velyra::App {
         }
 
     private:
+
+        void checkRemovePanel() {
+            if (m_ToRemovePanelID != 0) {
+                m_Panels.erase(m_ToRemovePanelID);
+                m_ToRemovePanelID = 0;
+            }
+        }
+
+    private:
         friend Application;
         friend Widgets::Panel;
 

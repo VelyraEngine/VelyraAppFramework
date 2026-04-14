@@ -34,7 +34,7 @@ namespace Velyra::App {
         context->createImGuiContext(imGuiDesc);
     }
 
-    void Application::run() const {
+    void Application::run() {
         VL_PRECONDITION(m_Window->getContext() != nullptr, "Context is null")
 
         // Stop creating imgui.ini everywhere
@@ -52,7 +52,7 @@ namespace Velyra::App {
         }
     }
 
-    void Application::internalRun() const {
+    void Application::internalRun() {
         const UP<Core::Context>& context = m_Window->getContext();
 
         TimePoint lastFrameTime = getTime() - 1ms;
@@ -83,6 +83,7 @@ namespace Velyra::App {
             for (const auto &panel: m_AppData.m_Panels | std::views::values) {
                 panel->draw();
             }
+            m_AppData.checkRemovePanel();
             // Draw popups on top of everything else
             for (const auto& popup: m_AppData.m_Popups) {
                 popup->draw();

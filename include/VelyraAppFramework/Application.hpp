@@ -16,7 +16,7 @@ namespace Velyra::App {
 
         ~Application() = default;
 
-        void run() const;
+        void run();
 
         template<typename T, typename... Args>
         void pushLayer(Args&&... args) {
@@ -27,7 +27,7 @@ namespace Velyra::App {
 
         void attachLayers() const;
 
-        void internalRun() const;
+        void internalRun();
 
         void detachLayers() const;
 
