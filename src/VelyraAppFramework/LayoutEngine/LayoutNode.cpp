@@ -58,7 +58,7 @@ namespace Velyra::App {
         }
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowViewport(viewport->ID);
-        ImGui::SetNextWindowPos(ImVec2(position.x + viewport->Pos.x, position.y + viewport->Pos.y), ImGuiCond_Always);
+        ImGui::SetNextWindowPos(ImVec2(position.x + viewport->WorkPos.x, position.y + viewport->WorkPos.y), ImGuiCond_Always);
         ImGui::SetNextWindowSize(size, ImGuiCond_Always);
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDocking;
         if (!m_Panel.resizable) {

@@ -73,6 +73,11 @@ public:
     }
 
     void onImGui(const UP<Core::Window> &, const UP<Core::Context> &) override {
+        drawMainMenuBar();
+        drawLayout();
+    }
+
+    void drawLayout() {
         m_AppData.layoutEngine.beginPanel("A");
         ImGui::Text("This is panel A");
         if (ImGui::Button("Open Popup")) {
@@ -109,6 +114,26 @@ public:
         m_AppData.layoutEngine.beginPanel("F");
         ImGui::Text("This is panel F");
         m_AppData.layoutEngine.endPanel("F");
+    }
+
+    void drawMainMenuBar() {
+        if (ImGui::BeginMainMenuBar()) {
+            if (ImGui::BeginMenu("File")) {
+                ImGui::MenuItem("Open");
+                ImGui::MenuItem("Load Additional Files");
+                ImGui::Separator();
+                ImGui::MenuItem("Settings");
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Tools")) {
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("About")) {
+                ImGui::MenuItem("VelyraAppFramework v0.1", nullptr, false, false);
+                ImGui::EndMenu();
+            }
+            ImGui::EndMainMenuBar();
+        }
     }
 
 private:
