@@ -80,7 +80,7 @@ namespace Velyra::App {
 
         // Convert ImGui's absolute window position back into our local layout space
         // so that comparisons are done in the same coordinate system.
-        const ImVec2 localNewPos = ImVec2(newPos.x - viewport->Pos.x, newPos.y - viewport->Pos.y);
+        const ImVec2 localNewPos = ImVec2(newPos.x - viewport->WorkPos.x, newPos.y - viewport->WorkPos.y);
 
         // Only handle actual resizes / layout changes
         if (!PIXEL_EQUAL(size, newSize) || !PIXEL_EQUAL(position, localNewPos)) {
