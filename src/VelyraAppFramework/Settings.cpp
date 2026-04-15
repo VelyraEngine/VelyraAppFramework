@@ -103,7 +103,9 @@ namespace Velyra::App {
         }
         if (j.contains("AppSettings")) {
             m_AppSettings = j.at("AppSettings");
-            tryLoadFromGit();
+            if (gitInfo.saveToGit) {
+                tryLoadFromGit();
+            }
         }
     }
 
@@ -121,7 +123,9 @@ namespace Velyra::App {
 
         SPDLOG_LOGGER_INFO(m_Logger, "Saved settings to file '{}'", filePath.string());
 
-        trySaveToGit();
+        if (gitInfo.saveToGit) {
+            trySaveToGit();
+        }
     }
 
     void Settings::trySaveToGit() const {
