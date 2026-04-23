@@ -47,7 +47,7 @@ set(VELYRA_APP_FRAMEWORK_SRC
 )
 
 add_library(VelyraAppFramework STATIC ${VELYRA_APP_FRAMEWORK_HEADERS} ${VELYRA_APP_FRAMEWORK_SRC})
-vl_target_set_compile_flags(VelyraAppFramework)
+vl_configure_target(VelyraAppFramework)
 target_precompile_headers(VelyraAppFramework PRIVATE src/Pch.hpp)
 target_include_directories(VelyraAppFramework PUBLIC include)
 target_include_directories(VelyraAppFramework PRIVATE src) # For the PCH
@@ -70,12 +70,11 @@ if (BUILD_TESTING)
     target_include_directories(TestVelyraAppFramework PRIVATE include/VelyraCore/ImGui)
     target_precompile_headers(TestVelyraAppFramework PUBLIC test/TestPch.hpp)
     target_link_libraries(TestVelyraAppFramework PUBLIC GTest::gtest GTest::gtest_main VelyraAppFramework)
-    add_test(NAME CTestVelyraAppFramework COMMAND ${PROOT} $<TARGET_FILE:TestVelyraAppFramework>)
-    set_tests_properties(CTestVelyraAppFramework PROPERTIES
-        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+    vl_configure_test_target(TestVelyraAppFramework)
 endif ()
 
 ################# Development #################
 
 add_executable(VelyraAppFrameworkMain main.cpp)
 target_link_libraries(VelyraAppFrameworkMain PRIVATE VelyraAppFramework)
+vl_configure_target(VelyraAppFrameworkMain)
