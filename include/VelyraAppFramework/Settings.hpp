@@ -35,7 +35,7 @@ namespace Velyra::App {
     };
 
     struct LocalSettings {
-        TimePoint lastUpdated = getSystemTime();
+        TimePoint lastUpdated = getTime();
 
         VL_GENERATE_JSON_SERIALIZER(LocalSettings, lastUpdated)
     };

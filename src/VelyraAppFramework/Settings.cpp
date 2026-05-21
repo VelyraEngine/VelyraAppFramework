@@ -110,7 +110,7 @@ namespace Velyra::App {
     }
 
     void Settings::saveSettings(const fs::path &filePath) const {
-        localSettings.lastUpdated = getSystemTime();
+        localSettings.lastUpdated = getTime();
         nlohmann::json j;
         j["WindowSettings"] = Utils::toJson(windowSettings);
         j["ContextSettings"] = Utils::toJson(contextSettings);
