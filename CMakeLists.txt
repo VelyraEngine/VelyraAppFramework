@@ -62,14 +62,12 @@ set(VELYRA_APP_FRAMEWORK_TEST_SRC
 )
 
 
-if (BUILD_TESTING)
-    vl_fetch_gtest()
-
+if (VL_BUILD_TESTING)
     add_executable(TestVelyraAppFramework ${VELYRA_APP_FRAMEWORK_TEST_SRC})
     target_include_directories(TestVelyraAppFramework PUBLIC include)
     target_include_directories(TestVelyraAppFramework PRIVATE include/VelyraCore/ImGui)
     target_precompile_headers(TestVelyraAppFramework PUBLIC test/TestPch.hpp)
-    target_link_libraries(TestVelyraAppFramework PUBLIC GTest::gtest GTest::gtest_main VelyraAppFramework)
+    target_link_libraries(TestVelyraAppFramework PUBLIC VelyraAppFramework)
     vl_configure_test_target(TestVelyraAppFramework)
 endif ()
 
