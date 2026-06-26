@@ -9,3 +9,5 @@
 #include <nlohmann/json.hpp>
 
 #include <VelyraUtils/PlatformDetection.hpp>
+
+#include <VelyraCore/VelyraCore.hpp>

@@ -4,6 +4,7 @@
 #include <nlohmann/json_fwd.hpp>
 #include <VelyraUtils/Conversions/Json.hpp>
 #include <VelyraUtils/DevUtils/JsonSerializer.hpp>
+#include <VelyraCore/Context/Definitions.hpp>
 
 #include <optional>
 
@@ -13,7 +14,7 @@ namespace Velyra::App {
         U32 width = 1280;
         U32 height = 720;
 
-        VL_GENERATE_JSON_SERIALIZER(WindowSettings, width, height)
+        VL_GENERATE_JSON_SERIALIZER_RELAXED(WindowSettings, width, height)
     };
 
     struct VL_API ContextSettings {
@@ -21,9 +22,8 @@ namespace Velyra::App {
         bool enableVSync = true;
         bool useDocking = false;
         bool useViewports = false;
-        bool useImPlot = false;
 
-        VL_GENERATE_JSON_SERIALIZER(ContextSettings, graphicsAPI, enableVSync, useDocking, useViewports, useImPlot)
+        VL_GENERATE_JSON_SERIALIZER_RELAXED(ContextSettings, graphicsAPI, enableVSync, useDocking, useViewports)
     };
 
     struct VL_API GitInfo {
@@ -31,13 +31,13 @@ namespace Velyra::App {
         fs::path gitRepoPath; // The path to the git repository where settings will be saved if saveToGit is true
         std::string sshString; // The SSH string to use for pushing to the git repository, e.g. "git@github:Coolrepo/settings.git"
 
-        VL_GENERATE_JSON_SERIALIZER(GitInfo, saveToGit, gitRepoPath, sshString)
+        VL_GENERATE_JSON_SERIALIZER_RELAXED(GitInfo, saveToGit, gitRepoPath, sshString)
     };
 
     struct LocalSettings {
         TimePoint lastUpdated = getTime();
 
-        VL_GENERATE_JSON_SERIALIZER(LocalSettings, lastUpdated)
+        VL_GENERATE_JSON_SERIALIZER_RELAXED(LocalSettings, lastUpdated)
     };
 
     struct VL_API SettingsDesc {

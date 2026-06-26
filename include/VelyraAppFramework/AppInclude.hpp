@@ -2,8 +2,7 @@
 
 #include <vector>
 #include <string_view>
-
-#include <VelyraCore/VelyraCore.hpp>
+#include <filesystem>
 
 namespace Velyra::App {
 

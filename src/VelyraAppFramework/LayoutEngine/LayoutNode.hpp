@@ -24,15 +24,9 @@ namespace Velyra::App {
          */
         void calculateUnknownRatio();
 
-        virtual void beginPanel(const std::string& name) {
+        virtual void draw(Core::Window& window, Core::Context& context) {
             for (const auto& child : m_Children) {
-                child->beginPanel(name);
-            }
-        }
-
-        virtual void endPanel(const std::string& name) {
-            for (const auto& child : m_Children) {
-                child->endPanel(name);
+                child->draw(window, context);
             }
         }
 
@@ -65,14 +59,17 @@ namespace Velyra::App {
 
         ~PanelImpl() override = default;
 
-        void beginPanel(const std::string &name) override;
-
-        void endPanel(const std::string &name) override;
+        void draw(Core::Window &window, Core::Context &context) override;
 
         const std::string& getName() const { return m_Panel.name; }
 
     public:
         Panel m_Panel;
+
+    private:
+        void beginPanel() const;
+
+        void endPanel() const;
 
     };
 

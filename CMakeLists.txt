@@ -22,7 +22,8 @@ set(VELYRA_APP_FRAMEWORK_HEADERS
     include/VelyraAppFramework/LayoutEngine/LayoutEngine.hpp
     include/VelyraAppFramework/LayoutEngine/LayoutDefinitions.hpp
     include/VelyraAppFramework/LayoutEngine/LayoutDescription.hpp
-    include/VelyraAppFramework/LayoutEngine/LayoutNode.hpp
+    src/VelyraAppFramework/LayoutEngine/LayoutNode.hpp
+    include/VelyraAppFramework/LayoutEngine/Layout.hpp
 
     include/VelyraAppFramework/Widgets/Popup.hpp
     include/VelyraAppFramework/Widgets/RegexInput.hpp

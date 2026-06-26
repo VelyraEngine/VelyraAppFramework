@@ -1,3 +1,5 @@
+#include <Pch.hpp>
+
 #include <VelyraAppFramework/LayoutEngine/LayoutDescription.hpp>
 
 namespace Velyra::App {
@@ -11,6 +13,10 @@ namespace Velyra::App {
     id(generateID()),
     type(type_){
 
+    }
+
+    void defaultDrawFunction(Core::Window &/*window*/, Core::Context &/*context*/) {
+        ImGui::Text("Default draw function. Please provide a custom draw function for this panel.");
     }
 
     PanelNode::PanelNode(const Panel &desc_):

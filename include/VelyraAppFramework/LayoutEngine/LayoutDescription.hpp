@@ -19,12 +19,22 @@ namespace Velyra::App {
         virtual ~Node() = default;
     };
 
+    void defaultDrawFunction(Core::Window& window, Core::Context& context);
+
     struct VL_API Panel{
         std::string name;
+        DrawFunction drawFunction = defaultDrawFunction;
         bool resizable = true;
         bool collapsible = false;
         float sizeRatio = DONT_CARE; // Relative size ratio compared to other panels in the same split
     };
+
+    template<typename OBJECT>
+    DrawFunction bindDraw(OBJECT* object, void(OBJECT::*memberFunction)(Core::Window&, Core::Context&)) {
+        return [object, memberFunction](Core::Window& window, Core::Context& context) {
+            (object->*memberFunction)(window, context);
+        };
+    }
 
     struct VL_API PanelNode: public Node {
         const Panel desc;

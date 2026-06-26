@@ -23,7 +23,6 @@ TEST_F(TestSettings, CreateSettingsFromNonExistingFile) {
         constexpr ContextSettings defaultContextSettings;
         EXPECT_EQ(settings.contextSettings.graphicsAPI, defaultContextSettings.graphicsAPI);
         EXPECT_EQ(settings.contextSettings.enableVSync, defaultContextSettings.enableVSync);
-        EXPECT_EQ(settings.contextSettings.useImPlot, defaultContextSettings.useImPlot);
         EXPECT_EQ(settings.contextSettings.useViewports, defaultContextSettings.useViewports);
         EXPECT_EQ(settings.contextSettings.useDocking, defaultContextSettings.useDocking);
     }

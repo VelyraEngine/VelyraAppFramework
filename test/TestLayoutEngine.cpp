@@ -2,11 +2,24 @@
 
 #include <VelyraAppFramework/LayoutEngine/LayoutDescription.hpp>
 #include <VelyraAppFramework/LayoutEngine/LayoutEngine.hpp>
+#include "../src/VelyraAppFramework/LayoutEngine/LayoutNode.hpp"
 
 using namespace Velyra;
 using namespace Velyra::App;
 
 class TestLayoutEngine: public ::testing::Test {
+};
+
+class LayoutTester: public Layout {
+public:
+    explicit LayoutTester(LayoutID id, SP<Node> layout): Layout(id), m_Layout(layout) {}
+
+    SP<Node> getLayout() override {
+        return m_Layout;
+    }
+
+private:
+    SP<Node> m_Layout;
 };
 
 TEST_F(TestLayoutEngine, CalculateUnknownRatioVerticalSmallLayout) {
@@ -17,11 +30,12 @@ TEST_F(TestLayoutEngine, CalculateUnknownRatioVerticalSmallLayout) {
             createPanel({.name = "C", .sizeRatio = 0.4f})
         )
     );
+    LayoutTester layoutTester(1, layout);
 
     LayoutEngine engine;
-    engine.registerLayout("TEST", layout);
+    engine.registerLayout(layoutTester);
 
-    auto& l = engine.get_m_Layouts().at("TEST");
+    auto& l = engine.get_m_Layouts().at(layoutTester.getID());
 
     EXPECT_FLOAT_EQ(l->ratio, 1.0f);
 
@@ -49,11 +63,12 @@ TEST_F(TestLayoutEngine, CalculateUnknownRatioVerticalSmallLayoutUnknownRatios) 
             createPanel({.name = "C"}) // Dont set ratio, should be 0.3f
         )
     );
+    LayoutTester layoutTester(1, layout);
 
     LayoutEngine engine;
-    engine.registerLayout("TEST", layout);
+    engine.registerLayout(layoutTester);
 
-    auto& l = engine.get_m_Layouts().at("TEST");
+    auto& l = engine.get_m_Layouts().at(layoutTester.getID());
 
     EXPECT_FLOAT_EQ(l->ratio, 1.0f);
     ASSERT_EQ(l->getChildren().size(), 3);
@@ -82,11 +97,12 @@ TEST_F(TestLayoutEngine, CalculateUnknownRatioHorizontalSmallLayout) {
             createPanel({.name = "C", .sizeRatio = 0.4f})
         )
     );
+    LayoutTester layoutTester(1, layout);
 
     LayoutEngine engine;
-    engine.registerLayout("TEST", layout);
+    engine.registerLayout(layoutTester);
 
-    auto& l = engine.get_m_Layouts().at("TEST");
+    auto& l = engine.get_m_Layouts().at(layoutTester.getID());
 
     EXPECT_FLOAT_EQ(l->ratio, 1.0f);
 
@@ -115,10 +131,12 @@ TEST_F(TestLayoutEngine, CalculateUnknownRatioHorizontalSmallLayoutUnknownRatios
         )
     );
 
-    LayoutEngine engine;
-    engine.registerLayout("TEST", layout);
+    LayoutTester layoutTester(1, layout);
 
-    auto& l = engine.get_m_Layouts().at("TEST");
+    LayoutEngine engine;
+    engine.registerLayout(layoutTester);
+
+    auto& l = engine.get_m_Layouts().at(layoutTester.getID());
 
     EXPECT_FLOAT_EQ(l->ratio, 1.0f);
     ASSERT_EQ(l->getChildren().size(), 3);
@@ -152,11 +170,12 @@ TEST_F(TestLayoutEngine, CalculateUnknownRatioNestedLayout) {
             )
         )
     );
+    LayoutTester layoutTester(1, layout);
 
     LayoutEngine engine;
-    engine.registerLayout("TEST", layout);
+    engine.registerLayout(layoutTester);
 
-    auto& l = engine.get_m_Layouts().at("TEST");
+    auto& l = engine.get_m_Layouts().at(layoutTester.getID());
 
     EXPECT_FLOAT_EQ(l->ratio, 1.0f);
     ASSERT_EQ(l->getChildren().size(), 2);
@@ -197,13 +216,15 @@ TEST_F(TestLayoutEngine, RatioToPixelVerticalSmallLayout) {
         )
     );
 
+    LayoutTester layoutTester(1, layout);
+
     LayoutEngine engine;
-    engine.registerLayout("TEST", layout);
-    engine.setActiveLayout("TEST");
+    engine.registerLayout(layoutTester);
+    engine.setActiveLayout(layoutTester.getID());
 
-    engine.calculateLayout(10.0f, 10.0f, 1000.0f, 1000.0f);
+    engine.get_m_Layouts().at(layoutTester.getID())->ratioToPixel(ImVec2(10.0f, 10.0f), ImVec2(1000.0f, 1000.0f));
 
-    auto& l = engine.get_m_Layouts().at("TEST");
+    auto& l = engine.get_m_Layouts().at(layoutTester.getID());
     EXPECT_FLOAT_EQ(l->getChildren()[0]->position.x, 10.0f);
     EXPECT_FLOAT_EQ(l->getChildren()[0]->position.y, 10.0f);
     EXPECT_FLOAT_EQ(l->getChildren()[0]->size.x, 1000.0f);
@@ -229,13 +250,15 @@ TEST_F(TestLayoutEngine, RatioToPixelHorizontalSmallLayout) {
         )
     );
 
+    LayoutTester layoutTester(1, layout);
+
     LayoutEngine engine;
-    engine.registerLayout("TEST", layout);
-    engine.setActiveLayout("TEST");
+    engine.registerLayout(layoutTester);
+    engine.setActiveLayout(layoutTester.getID());
 
-    engine.calculateLayout(10.0f, 10.0f, 1000.0f, 1000.0f);
+    engine.get_m_Layouts().at(layoutTester.getID())->ratioToPixel(ImVec2(10.0f, 10.0f), ImVec2(1000.0f, 1000.0f));
 
-    auto& l = engine.get_m_Layouts().at("TEST");
+    auto& l = engine.get_m_Layouts().at(layoutTester.getID());
     EXPECT_FLOAT_EQ(l->getChildren()[0]->position.x, 10.0f);
     EXPECT_FLOAT_EQ(l->getChildren()[0]->position.y, 10.0f);
     EXPECT_FLOAT_EQ(l->getChildren()[0]->size.x, 200.0f);
@@ -266,13 +289,15 @@ TEST_F(TestLayoutEngine, RatioToPixelNestedLayout) {
         )
     );
 
+    LayoutTester layoutTester(1, layout);
+
     LayoutEngine engine;
-    engine.registerLayout("TEST", layout);
-    engine.setActiveLayout("TEST");
+    engine.registerLayout(layoutTester);
+    engine.setActiveLayout(layoutTester.getID());
 
-    engine.calculateLayout(10.0f, 10.0f, 1000.0f, 1000.0f);
+    engine.get_m_Layouts().at(layoutTester.getID())->ratioToPixel(ImVec2(10.0f, 10.0f), ImVec2(1000.0f, 1000.0f));
 
-    auto& l = engine.get_m_Layouts().at("TEST");
+    auto& l = engine.get_m_Layouts().at(layoutTester.getID());
 
     // First horizontal split
     auto horizontalSplit1 = dynamic_cast<HorizontalSplit*>(l->getChildren()[0].get());

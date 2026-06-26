@@ -1,7 +1,7 @@
 #include <Pch.hpp>
 
 #include <VelyraAppFramework/LayoutEngine/LayoutEngine.hpp>
-#include <VelyraAppFramework/LayoutEngine/LayoutNode.hpp>
+#include "LayoutNode.hpp"
 #include "../LoggerNames.hpp"
 
 namespace Velyra::App {
@@ -11,48 +11,36 @@ namespace Velyra::App {
 
     }
 
-    void LayoutEngine::registerLayout(const std::string &name, const SP<Node>& layout) {
-        m_Layouts[name] = createLayoutNode(layout, nullptr);
-        m_Layouts[name]->calculateUnknownRatio();
+    void LayoutEngine::registerLayout(Layout &layout) {
+        const LayoutID layoutID = layout.getID();
+        if (m_Layouts.find(layoutID) != m_Layouts.end()) {
+            SPDLOG_LOGGER_ERROR(m_Logger, "Layout with ID '{}' already registered. Overwriting!", layoutID);
+        }
+        m_Layouts[layoutID] = createLayoutNode(layout.getLayout(), nullptr);
+        m_Layouts[layoutID]->calculateUnknownRatio();
     }
 
-    void LayoutEngine::setActiveLayout(const std::string &name) {
-        const auto layoutIt = m_Layouts.find(name);
+    void LayoutEngine::setActiveLayout(const LayoutID layoutID) {
+        const auto layoutIt = m_Layouts.find(layoutID);
         if (layoutIt == m_Layouts.end()) {
-            SPDLOG_LOGGER_ERROR(m_Logger, "Layout '{}' not found. Register first a layout for this name!", name);
+            SPDLOG_LOGGER_ERROR(m_Logger, "Layout with ID '{}' not found. Register first a layout for this ID!", layoutID);
             return;
         }
-        m_ActiveLayout = name;
+        m_ActiveLayout = layoutID;
     }
 
-    void LayoutEngine::beginPanel(const std::string &name) const {
+    void LayoutEngine::draw(const float xPos, const float yPos, const float windowWidth, const float windowHeight,
+        Core::Window &window, Core::Context &context) {
         const auto layoutIt = m_Layouts.find(m_ActiveLayout);
         if (layoutIt == m_Layouts.end()) {
-            SPDLOG_LOGGER_ERROR(m_Logger, "Layout '{}' not found. Register first a layout for this name!", name);
+            SPDLOG_LOGGER_ERROR(m_Logger, "Layout '{}' not found. Register first a layout for this ID!", m_ActiveLayout);
             return;
         }
-        layoutIt->second->beginPanel(name);
-    }
-
-    void LayoutEngine::endPanel(const std::string &name) const {
-        const auto layoutIt = m_Layouts.find(m_ActiveLayout);
-        if (layoutIt == m_Layouts.end()) {
-            SPDLOG_LOGGER_ERROR(m_Logger, "Layout '{}' not found. Register first a layout for this name!", name);
-            return;
-        }
-        layoutIt->second->endPanel(name);
-    }
-
-    void LayoutEngine::calculateLayout(const float xPos, const float yPos, const float windowWidth, const float windowHeight) const {
-        if (m_ActiveLayout.empty()) {
-            return;
-        }
-        const auto layoutIt = m_Layouts.find(m_ActiveLayout);
-        if (layoutIt == m_Layouts.end()) {
-            SPDLOG_LOGGER_ERROR(m_Logger, "Layout '{}' not found. Register first a layout for this name!", m_ActiveLayout);
-            return;
-        }
+        // First calculate the layout based on the current window size and position
         layoutIt->second->ratioToPixel(ImVec2(xPos, yPos), ImVec2(windowWidth, windowHeight));
+
+        // Then draw the panels, traversing the tree
+        layoutIt->second->draw(window, context);
     }
 
     UP<LayoutNode> LayoutEngine::createLayoutNode(const SP<Node> &nodeDesc, LayoutNode *parent) {

@@ -52,10 +52,13 @@ namespace Velyra::App {
         ratio = desc.sizeRatio;
     }
 
-    void PanelImpl::beginPanel(const std::string &name) {
-        if (name != m_Panel.name) {
-            return;
-        }
+    void PanelImpl::draw(Core::Window &window, Core::Context &context) {
+        beginPanel();
+        m_Panel.drawFunction(window, context);
+        endPanel();
+    }
+
+    void PanelImpl::beginPanel() const {
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowViewport(viewport->ID);
         ImGui::SetNextWindowPos(ImVec2(position.x + viewport->WorkPos.x, position.y + viewport->WorkPos.y), ImGuiCond_Always);
@@ -70,10 +73,7 @@ namespace Velyra::App {
         ImGui::Begin(m_Panel.name.c_str(), nullptr, window_flags);
     }
 
-    void PanelImpl::endPanel(const std::string &name) {
-        if (name != m_Panel.name) {
-            return;
-        }
+    void PanelImpl::endPanel() const {
         const ImVec2 newSize = ImGui::GetWindowSize();
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
         const ImVec2 newPos = ImGui::GetWindowPos();

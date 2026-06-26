@@ -30,29 +30,25 @@ namespace Velyra::App {
         Core::ImGuiContextDesc imGuiDesc;
         imGuiDesc.useDocking = m_AppData.settings.contextSettings.useDocking;
         imGuiDesc.useViewports = m_AppData.settings.contextSettings.useViewports;
-        imGuiDesc.useImPlot = m_AppData.settings.contextSettings.useImPlot;
+        imGuiDesc.useImPlot = appDesc.useImPlot;
         context->createImGuiContext(imGuiDesc);
+
+        if (!appDesc.saveImGuiWindowData) {
+            ImGui::GetIO().IniFilename = nullptr;
+        }
+    }
+
+    Application::~Application() {
+        const UP<Core::Context>& context = m_Window->getContext();
+        if (m_AppLayer) {
+            m_AppLayer->onDetach(*m_Window, *context);
+        }
+
     }
 
     void Application::run() {
         VL_PRECONDITION(m_Window->getContext() != nullptr, "Context is null")
 
-        // Stop creating imgui.ini everywhere
-        ImGui::GetIO().IniFilename = nullptr;
-
-        attachLayers();
-        internalRun();
-        detachLayers();
-    }
-
-    void Application::attachLayers() const {
-        const UP<Core::Context>& context = m_Window->getContext();
-        for (const auto& layer: m_LayerStack) {
-            layer->onAttach(m_Window, context);
-        }
-    }
-
-    void Application::internalRun() {
         const UP<Core::Context>& context = m_Window->getContext();
 
         TimePoint lastFrameTime = getTime() - 1ms;
@@ -65,42 +61,32 @@ namespace Velyra::App {
             const TimePoint currentTime = getTime();
             const Duration deltaTime = currentTime - lastFrameTime;
             lastFrameTime = currentTime;
-            for (const auto& layer: m_LayerStack) {
-                layer->onUpdate(m_Window, context, deltaTime);
-            }
+            if (m_AppLayer) {
+                m_AppLayer->onUpdate(*m_Window, *context, deltaTime);
 
-            // onImGui
-            context->onImGuiBegin();
-            const ImGuiViewport* mainViewport = ImGui::GetMainViewport();
-            m_AppData.layoutEngine.calculateLayout(
-                0.0f, 0.0f,
-                static_cast<float>(context->getClientWidth()), static_cast<float>(context->getClientHeight())
-            );
-            for (const auto& layer: m_LayerStack) {
-                layer->onImGui(m_Window, context);
+                // onImGui
+                context->onImGuiBegin();
+                m_AppLayer->mainMenuBar(*m_Window, *context);
+                m_AppData.layoutEngine.draw(
+                    0.0f, 0.0f,
+                    static_cast<float>(context->getClientWidth()), static_cast<float>(context->getClientHeight()),
+                    *m_Window, *context
+                );
+                m_AppLayer->onImGui(*m_Window, *context);
+                // Draw panels before popups so that popups are always on top
+                for (const auto &panel: m_AppData.m_Panels | std::views::values) {
+                    panel->draw();
+                }
+                m_AppData.checkRemovePanel();
+                // Draw popups on top of everything else
+                for (const auto& popup: m_AppData.m_Popups) {
+                    popup->draw();
+                }
+                context->onImGuiEnd();
             }
-            // Draw panels before popups so that popups are always on top
-            for (const auto &panel: m_AppData.m_Panels | std::views::values) {
-                panel->draw();
-            }
-            m_AppData.checkRemovePanel();
-            // Draw popups on top of everything else
-            for (const auto& popup: m_AppData.m_Popups) {
-                popup->draw();
-            }
-            context->onImGuiEnd();
-
             context->endFrame();
 
             context->swapBuffers();
-        }
-
-    }
-
-    void Application::detachLayers() const {
-        const UP<Core::Context>& context = m_Window->getContext();
-        for (const auto& layer: m_LayerStack) {
-            layer->onDetach(m_Window, context);
         }
     }
 
@@ -110,12 +96,11 @@ namespace Velyra::App {
         m_Window->pollEvents();
         while (m_Window->hasEvent()) {
             Core::Event event = m_Window->getNextEvent();
-            Size layerIndex = 0;
-            bool eventHandled = false;
-            while (layerIndex < m_LayerStack.size() && !eventHandled) {
-                eventHandled = m_LayerStack[layerIndex]->onEvent(m_Window, context, event);
-                layerIndex++;
+
+            if (m_AppLayer) {
+                m_AppLayer->onEvent(*m_Window, *context, event);
             }
+
             if (event.type == VL_EVENT_WINDOW_CLOSED) {
                 m_Window->close();
             }

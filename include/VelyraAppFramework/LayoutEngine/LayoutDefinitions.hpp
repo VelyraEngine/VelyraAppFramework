@@ -1,12 +1,22 @@
 #pragma once
 
-#include <VelyraAppFramework/AppInclude.hpp>
+#include <VelyraCore/ImGui/imgui.h>
+#include <VelyraUtils/VelyraUtils.hpp>
 
 #define DONT_CARE (-1.0f)
+
+namespace Velyra::Core {
+
+    class Window;
+    class Context;
+
+}
 
 namespace Velyra::App {
 
     using NodeID = Size;
+
+    using DrawFunction = std::function<void(Core::Window&, Core::Context&)>;
 
     typedef enum ResizeDirection: int {
         None = 0,
@@ -39,5 +49,4 @@ namespace Velyra::App {
     inline ImVec2 PIXEL_CEIL(const ImVec2& vec) {
         return {std::ceil(vec.x), std::ceil(vec.y)};
     }
-
 }

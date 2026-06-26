@@ -3,6 +3,8 @@
 #include <VelyraAppFramework/Widgets/Popup.hpp>
 #include <VelyraAppFramework/Widgets/Panel.hpp>
 
+#include "VelyraAppFramework/Layer.hpp"
+
 using namespace Velyra;
 
 class ExamplePopup: public App::Widgets::Popup {
@@ -34,89 +36,97 @@ struct ExampleSetting {
     VL_GENERATE_JSON_SERIALIZER(ExampleSetting, value)
 };
 
-class ExampleLayer: public App::Layer {
+class ExampleStore {
 public:
-    explicit ExampleLayer(App::AppData& app_data): App::Layer(app_data) {}
+    ExampleStore() = default;
 
-    void onAttach(const UP<Core::Window> &, const UP<Core::Context> &) override {
-        // Settings
-        m_ExampleSetting = m_AppData.settings.getSetting<ExampleSetting>("ExampleSetting");
+    SP<ExamplePopup> examplePopup = createSP<ExamplePopup>();
+    ExampleSetting exampleSetting;
+};
 
-        // Popups
-        m_AppData.addPopup(m_ExamplePopup);
+class Layout1: public App::Layout {
+public:
+    explicit Layout1(ExampleStore& store): Layout(1),
+                                           m_Store(store){}
+    ~Layout1() override = default;
 
-        // Layout
+    void drawA(Core::Window& window, Core::Context& context) {
+        ImGui::Text("This is panel A");
+    }
+
+    void drawB(Core::Window& window, Core::Context& context) {
+        ImGui::Text("Button was clicked %u times", m_Store.exampleSetting.value);
+        if (ImGui::Button("Increment!")) {
+             m_Store.exampleSetting.value++;
+        }
+        if (ImGui::Button("Reset")) {
+             m_Store.exampleSetting.value = 0;
+        }
+    }
+
+    void drawC(Core::Window& window, Core::Context& context) {
+        ImGui::Text("This is panel C");
+    }
+
+    void drawD(Core::Window& window, Core::Context& context) {
+        ImGui::Text("This is panel D");
+    }
+
+    void drawE(Core::Window& window, Core::Context& context) {
+        ImGui::Text("This is panel E");
+    }
+
+    void drawF(Core::Window& window, Core::Context& context) {
+        ImGui::Text("This is panel F");
+    }
+
+    SP<App::Node> getLayout() override {
         using namespace Velyra::App;
 
-
-        auto layout = createLayout(
+        return createLayout(
             horizontalSplit(
                 verticalSplit(
-                    createPanel({.name = "A", .sizeRatio = 0.2f}),
-                    createPanel({.name = "B", .sizeRatio = 0.4f}),
-                    createPanel({.name = "C", .sizeRatio = 0.4f})
+                    createPanel({.name = "A", .drawFunction = bindDraw(this, &Layout1::drawA), .sizeRatio = 0.2f}),
+                    createPanel({.name = "B", .drawFunction = bindDraw(this, &Layout1::drawB), .sizeRatio = 0.4f}),
+                    createPanel({.name = "C", .drawFunction = bindDraw(this, &Layout1::drawC), .sizeRatio = 0.4f})
                 ),
-                createPanel({.name = "D", .sizeRatio = 0.6f}),
+                createPanel({.name = "D", .drawFunction = bindDraw(this, &Layout1::drawD), .sizeRatio = 0.6f}),
                 verticalSplit(
-                    createPanel({.name = "E", .sizeRatio = 0.3f}),
-                    createPanel({.name =  "F", .sizeRatio = 0.7f})
+                    createPanel({.name = "E", .drawFunction = bindDraw(this, &Layout1::drawE), .sizeRatio = 0.3f}),
+                    createPanel({.name =  "F", .drawFunction = bindDraw(this, &Layout1::drawF), .sizeRatio = 0.7f})
                 )
             )
         );
-
-        m_AppData.layoutEngine.registerLayout("DEFAULT", layout);
-        m_AppData.layoutEngine.setActiveLayout("DEFAULT");
     }
 
-    void onDetach(const UP<Core::Window> &, const UP<Core::Context> &) override {
-        m_AppData.settings.setSetting("ExampleSetting", m_ExampleSetting);
+private:
+    ExampleStore& m_Store;
+};
+
+class ExampleLayer: public App::Layer {
+public:
+    explicit ExampleLayer(App::AppData& app_data): App::Layer(app_data),
+    m_Store(),
+    m_Layout1(m_Store){
+
     }
 
-    void onImGui(const UP<Core::Window> &, const UP<Core::Context> &) override {
-        drawMainMenuBar();
-        drawLayout();
+    void onAttach(Core::Window &window, Core::Context &context) override {
+        // Settings
+         m_Store.exampleSetting = m_AppData.settings.getSetting<ExampleSetting>("ExampleSetting");
+
+        // Popups
+        m_AppData.addPopup(m_Store.examplePopup);
+
+        m_AppData.layoutEngine.registerLayout(m_Layout1);
+        m_AppData.layoutEngine.setActiveLayout(m_Layout1.getID());
     }
 
-    void drawLayout() {
-        m_AppData.layoutEngine.beginPanel("A");
-        ImGui::Text("This is panel A");
-        if (ImGui::Button("Open Popup")) {
-            m_ExamplePopup->setOpen(true);
-        }
-        if (ImGui::Button("Add new Panel")) {
-            const std::string panelName = "New Panel " + std::to_string(m_AppData.getPanelCount() + 1);
-            m_AppData.addPanel(createSP<ExamplePanel>(m_AppData, panelName));
-        }
-        m_AppData.layoutEngine.endPanel("A");
-
-        m_AppData.layoutEngine.beginPanel("B");
-        ImGui::Text("Button was clicked %u times", m_ExampleSetting.value);
-        if (ImGui::Button("Increment!")) {
-            m_ExampleSetting.value++;
-        }
-        if (ImGui::Button("Reset")) {
-            m_ExampleSetting.value = 0;
-        }
-        m_AppData.layoutEngine.endPanel("B");
-
-        m_AppData.layoutEngine.beginPanel("C");
-        ImGui::Text("This is panel C");
-        m_AppData.layoutEngine.endPanel("C");
-
-        m_AppData.layoutEngine.beginPanel("D");
-        ImGui::Text("This is panel D");
-        m_AppData.layoutEngine.endPanel("D");
-
-        m_AppData.layoutEngine.beginPanel("E");
-        ImGui::Text("This is panel E");
-        m_AppData.layoutEngine.endPanel("E");
-
-        m_AppData.layoutEngine.beginPanel("F");
-        ImGui::Text("This is panel F");
-        m_AppData.layoutEngine.endPanel("F");
+    void onDetach(Core::Window &window, Core::Context &context) override {
+        m_AppData.settings.setSetting("ExampleSetting", m_Store.exampleSetting);
     }
 
-    void drawMainMenuBar() {
+    void mainMenuBar(Core::Window &window, Core::Context &context) override{
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
                 ImGui::MenuItem("Open");
@@ -137,8 +147,8 @@ public:
     }
 
 private:
-    SP<ExamplePopup> m_ExamplePopup = createSP<ExamplePopup>();
-    ExampleSetting m_ExampleSetting;
+    ExampleStore m_Store;
+    Layout1 m_Layout1;
 };
 
 int main(const int argc, char* argv[]) {
@@ -149,7 +159,7 @@ int main(const int argc, char* argv[]) {
         desc.applicationName = "VelyraAppDemo";
 
         App::Application app(desc, args);
-        app.pushLayer<ExampleLayer>();
+        app.createAppLayer<ExampleLayer>();
         app.run();
 
     } catch (const std::exception& e) {
