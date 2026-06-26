@@ -7,12 +7,16 @@
 
 using namespace Velyra;
 
+static constexpr App::LayoutID LAYOUT_1_ID = 1;
+static constexpr App::Widgets::PopupID POPUP_EXAMPLE_ID = 1;
+
 class ExamplePopup: public App::Widgets::Popup {
 public:
-    explicit ExamplePopup(): App::Widgets::Popup("Example Popup") {}
+    ExamplePopup(App::AppData& app_data):
+    App::Widgets::Popup(app_data, "Example Popup", POPUP_EXAMPLE_ID) {}
 
 protected:
-    void drawContent() override {
+    void drawContent(Core::Window& window, Core::Context& context) override {
         ImGui::Text("This is an example popup!");
         if (ImGui::Button("Close")) {
             setOpen(false);
@@ -22,10 +26,11 @@ protected:
 
 class ExamplePanel: public App::Widgets::Panel {
 public:
-    explicit ExamplePanel(App::AppData& app_data, const std::string& name): App::Widgets::Panel(app_data, name) {}
+    explicit ExamplePanel(App::AppData& app_data, const std::string& name):
+    App::Widgets::Panel(app_data, name) {}
 
 protected:
-    void drawContent() override {
+    void drawContent(Core::Window& window, Core::Context& context) override {
         ImGui::Text("This is an example panel!");
     }
 };
@@ -40,18 +45,25 @@ class ExampleStore {
 public:
     ExampleStore() = default;
 
-    SP<ExamplePopup> examplePopup = createSP<ExamplePopup>();
+    SP<ExamplePopup> examplePopup;
     ExampleSetting exampleSetting;
 };
 
 class Layout1: public App::Layout {
 public:
-    explicit Layout1(ExampleStore& store): Layout(1),
-                                           m_Store(store){}
+    explicit Layout1(App::AppData& appData, ExampleStore& store): Layout(1),
+    m_AppData(appData), m_Store(store){}
+
     ~Layout1() override = default;
 
     void drawA(Core::Window& window, Core::Context& context) {
-        ImGui::Text("This is panel A");
+        if (ImGui::Button("Open Popup")) {
+            m_AppData.openPopup(POPUP_EXAMPLE_ID);
+        }
+        if (ImGui::Button("Add new Panel")) {
+            const std::string panelName = "New Panel " + std::to_string(m_AppData.getPanelCount() + 1);
+            m_AppData.addPanel(createSP<ExamplePanel>(m_AppData, panelName));
+        }
     }
 
     void drawB(Core::Window& window, Core::Context& context) {
@@ -100,6 +112,7 @@ public:
     }
 
 private:
+    App::AppData& m_AppData;
     ExampleStore& m_Store;
 };
 
@@ -107,7 +120,7 @@ class ExampleLayer: public App::Layer {
 public:
     explicit ExampleLayer(App::AppData& app_data): App::Layer(app_data),
     m_Store(),
-    m_Layout1(m_Store){
+    m_Layout1(app_data, m_Store){
 
     }
 
@@ -116,6 +129,7 @@ public:
          m_Store.exampleSetting = m_AppData.settings.getSetting<ExampleSetting>("ExampleSetting");
 
         // Popups
+        m_Store.examplePopup = createSP<ExamplePopup>(m_AppData);
         m_AppData.addPopup(m_Store.examplePopup);
 
         m_AppData.layoutEngine.registerLayout(m_Layout1);

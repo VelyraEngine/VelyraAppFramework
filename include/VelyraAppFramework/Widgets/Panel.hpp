@@ -1,6 +1,11 @@
 #pragma once
 
-#include <VelyraAppFramework/AppInclude.hpp>
+#include <VelyraUtils/Types/Types.hpp>
+
+namespace Velyra::Core {
+    class Window;
+    class Context;
+}
 
 namespace Velyra::App {
     class AppData;
@@ -16,14 +21,22 @@ namespace Velyra::App::Widgets {
 
         virtual ~Panel() = default;
 
-        void draw();
+        /**
+         * @brief Draws the panel
+         * @param window
+         * @param context
+         * @return false if the panel is closed, true if it is still open
+         */
+        bool draw(Core::Window& window, Core::Context& context);
 
         PanelID getPanelID() const { return m_PanelID; }
 
         const std::string& getName() const { return m_Name; }
 
+        PanelID getID() const { return m_PanelID; }
+
     protected:
-        virtual void drawContent() = 0;
+        virtual void drawContent(Core::Window& window, Core::Context& context) = 0;
 
     protected:
         AppData& m_AppData;

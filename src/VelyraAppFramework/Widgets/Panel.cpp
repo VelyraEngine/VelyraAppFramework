@@ -18,14 +18,13 @@ namespace Velyra::App::Widgets {
         m_ImGuiLabel = name + "###Panel" + std::to_string(m_PanelID);
     }
 
-    void Panel::draw() {
+    bool Panel::draw(Core::Window& window, Core::Context& context) {
         ImGui::SetNextWindowSize(Styles::DefaultWindowSize, ImGuiCond_Once);
         ImGui::Begin(m_ImGuiLabel.c_str(), &m_Open);
-        drawContent();
+        drawContent(window, context);
         ImGui::End();
-        if (!m_Open) {
-            m_AppData.m_ToRemovePanelID = m_PanelID;
-        }
+
+        return m_Open;
     }
 
 } // namespace Velyra::App::Widgets

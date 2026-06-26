@@ -4,19 +4,21 @@
 
 namespace Velyra::App::Widgets {
 
-    Popup::Popup(const std::string &name):
+    Popup::Popup(AppData& appData, const std::string &name, const PopupID popupID):
+    m_AppData(appData),
+    m_PopupID(popupID),
     m_Name(name){
 
     }
 
-    void Popup::draw() {
+    void Popup::draw(Core::Window& window, Core::Context& context) {
         if (!m_Open) {
             return;
         }
         ImGui::OpenPopup(m_Name.c_str());
         bool isOpen = true;
         if (ImGui::BeginPopupModal(m_Name.c_str(), &isOpen)) {
-            drawContent();
+            drawContent(window, context);
             ImGui::EndPopup();
         }
         if (!isOpen) {

@@ -4,8 +4,8 @@
 #include <VelyraAppFramework/Settings.hpp>
 
 #include <VelyraAppFramework/LayoutEngine/LayoutEngine.hpp>
-#include <VelyraAppFramework/Widgets/Popup.hpp>
 #include <VelyraAppFramework/Widgets/Panel.hpp>
+#include <VelyraAppFramework/Widgets/Popup.hpp>
 
 namespace Velyra::App {
 
@@ -21,9 +21,11 @@ namespace Velyra::App {
         AppData(const ProgramArgs& args, const SettingsDesc& settingsDesc) : programArgs(args), settings(settingsDesc) {
         }
 
-        void addPopup(const SP<Widgets::Popup> &popup) {
-            m_Popups.push_back(popup);
-        }
+        void addPopup(const SP<Widgets::Popup> &popup);
+
+        void openPopup(Widgets::PopupID popupID);
+
+        void closePopup(Widgets::PopupID popupID);
 
         void addPanel(const SP<Widgets::Panel> &panel) {
             m_Panels[panel->getPanelID()] = panel;
@@ -35,21 +37,15 @@ namespace Velyra::App {
 
     private:
 
-        void checkRemovePanel() {
-            if (m_ToRemovePanelID != 0) {
-                m_Panels.erase(m_ToRemovePanelID);
-                m_ToRemovePanelID = 0;
-            }
-        }
+        void drawPopups(Core::Window& window, Core::Context& context);
+
+        void drawPanels(Core::Window& window, Core::Context& context);
 
     private:
         friend Application;
-        friend Widgets::Panel;
 
-        Widgets::PanelID m_ToRemovePanelID = 0;
         std::unordered_map<Widgets::PanelID, SP<Widgets::Panel>> m_Panels;
-
-        std::vector<SP<Widgets::Popup>> m_Popups;
+        std::unordered_map<Widgets::PopupID, SP<Widgets::Popup>> m_Popups;
     };
 
 }
