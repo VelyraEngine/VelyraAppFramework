@@ -1,25 +1,29 @@
 #pragma once
 
-#include <VelyraAppFramework/AppInclude.hpp>
 #include <VelyraAppFramework/Settings.hpp>
 
-#include <VelyraAppFramework/LayoutEngine/LayoutEngine.hpp>
 #include <VelyraAppFramework/Widgets/Panel.hpp>
 #include <VelyraAppFramework/Widgets/Popup.hpp>
+#include <VelyraAppFramework/LayoutEngine/Layout.hpp>
 
 namespace Velyra::App {
 
     class Application;
+    class LayoutEngine;
 
     class VL_API AppData {
     public:
         const ProgramArgs& programArgs;
         Settings settings;
-        LayoutEngine layoutEngine;
 
     public:
-        AppData(const ProgramArgs& args, const SettingsDesc& settingsDesc) : programArgs(args), settings(settingsDesc) {
-        }
+        AppData(const ProgramArgs& args, const SettingsDesc& settingsDesc, LayoutEngine& layoutEngine);
+
+        void registerLayout(Layout& layout) const;
+
+        void setActiveLayout(LayoutID layoutID) const;
+
+        LayoutID getActiveLayout() const;
 
         void addPopup(const SP<Widgets::Popup> &popup);
 
@@ -43,6 +47,8 @@ namespace Velyra::App {
 
     private:
         friend Application;
+
+        LayoutEngine& m_LayoutEngine;
 
         std::unordered_map<Widgets::PanelID, SP<Widgets::Panel>> m_Panels;
         std::unordered_map<Widgets::PopupID, SP<Widgets::Popup>> m_Popups;

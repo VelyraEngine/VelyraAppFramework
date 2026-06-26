@@ -132,8 +132,8 @@ public:
         m_Store.examplePopup = createSP<ExamplePopup>(m_AppData);
         m_AppData.addPopup(m_Store.examplePopup);
 
-        m_AppData.layoutEngine.registerLayout(m_Layout1);
-        m_AppData.layoutEngine.setActiveLayout(m_Layout1.getID());
+        m_AppData.registerLayout(m_Layout1);
+        m_AppData.setActiveLayout(m_Layout1.getID());
     }
 
     void onDetach(Core::Window &window, Core::Context &context) override {

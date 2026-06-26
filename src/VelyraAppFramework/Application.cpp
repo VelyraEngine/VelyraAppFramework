@@ -14,7 +14,8 @@ namespace Velyra::App {
     }
 
     Application::Application(const ApplicationDesc &appDesc, const ProgramArgs &programArgs):
-    m_AppData(programArgs, createSettingsDesc(appDesc)){
+    m_LayoutEngine(),
+    m_AppData(programArgs, createSettingsDesc(appDesc), m_LayoutEngine){
         Core::WindowDesc windowDesc;
         windowDesc.width = m_AppData.settings.windowSettings.width;
         windowDesc.height = m_AppData.settings.windowSettings.height;
@@ -67,7 +68,7 @@ namespace Velyra::App {
                 // onImGui
                 context->onImGuiBegin();
                 m_AppLayer->mainMenuBar(*m_Window, *context);
-                m_AppData.layoutEngine.draw(
+                m_LayoutEngine.draw(
                     0.0f, 0.0f,
                     static_cast<float>(context->getClientWidth()), static_cast<float>(context->getClientHeight()),
                     *m_Window, *context

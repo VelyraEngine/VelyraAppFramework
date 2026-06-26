@@ -1,8 +1,27 @@
 #include <Pch.hpp>
 
 #include <VelyraAppFramework/AppData.hpp>
+#include "../../include/VelyraAppFramework/LayoutEngine/LayoutEngine.hpp"
 
 namespace Velyra::App {
+
+    AppData::AppData(const ProgramArgs& args, const SettingsDesc& settingsDesc, LayoutEngine& layoutEngine) :
+    programArgs(args),
+    settings(settingsDesc),
+    m_LayoutEngine(layoutEngine){
+    }
+
+    void AppData::registerLayout(Layout& layout) const {
+        m_LayoutEngine.registerLayout(layout);
+    }
+
+    void AppData::setActiveLayout(const LayoutID layoutID) const {
+        m_LayoutEngine.setActiveLayout(layoutID);
+    }
+
+    LayoutID AppData::getActiveLayout() const {
+        return m_LayoutEngine.getActiveLayout();
+    }
 
     void AppData::addPopup(const SP<Widgets::Popup> &popup) {
         m_Popups[popup->getID()] = popup;

@@ -1,7 +1,7 @@
 #include "TestPch.hpp"
 
 #include <VelyraAppFramework/LayoutEngine/LayoutDescription.hpp>
-#include <VelyraAppFramework/LayoutEngine/LayoutEngine.hpp>
+#include <../include/VelyraAppFramework/LayoutEngine/LayoutEngine.hpp>
 #include "../src/VelyraAppFramework/LayoutEngine/LayoutNode.hpp"
 
 using namespace Velyra;

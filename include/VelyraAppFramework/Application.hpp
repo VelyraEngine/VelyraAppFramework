@@ -3,6 +3,7 @@
 #include <VelyraAppFramework/AppData.hpp>
 #include <VelyraAppFramework/Layer.hpp>
 #include <VelyraCore/Window/Window.hpp>
+#include "LayoutEngine/LayoutEngine.hpp"
 
 namespace Velyra::App {
 
@@ -38,6 +39,7 @@ namespace Velyra::App {
         void processEvents() const;
 
     private:
+        LayoutEngine m_LayoutEngine;
         AppData m_AppData;
         UP<Layer> m_AppLayer;
         UP<Core::Window> m_Window;
