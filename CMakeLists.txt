@@ -28,6 +28,7 @@ set(VELYRA_APP_FRAMEWORK_HEADERS
     include/VelyraAppFramework/Widgets/Popup.hpp
     include/VelyraAppFramework/Widgets/RegexInput.hpp
     include/VelyraAppFramework/Widgets/Panel.hpp
+    include/VelyraAppFramework/Widgets/Terminal.hpp
 
     src/VelyraAppFramework/LoggerNames.hpp
 )
@@ -45,6 +46,7 @@ set(VELYRA_APP_FRAMEWORK_SRC
     src/VelyraAppFramework/Widgets/Popup.cpp
     src/VelyraAppFramework/Widgets/RegexInput.cpp
     src/VelyraAppFramework/Widgets/Panel.cpp
+    src/VelyraAppFramework/Widgets/Terminal.cpp
 )
 
 add_library(VelyraAppFramework STATIC ${VELYRA_APP_FRAMEWORK_HEADERS} ${VELYRA_APP_FRAMEWORK_SRC})
