@@ -7,6 +7,7 @@
 #include <regex>
 
 #include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
 
 #include <VelyraUtils/PlatformDetection.hpp>
 #include <VelyraUtils/Conversions/String.hpp>

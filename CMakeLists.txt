@@ -65,7 +65,7 @@ set(VELYRA_APP_FRAMEWORK_TEST_SRC
 )
 
 
-if (VL_BUILD_TESTING)
+if (BUILD_TESTING)
     add_executable(TestVelyraAppFramework ${VELYRA_APP_FRAMEWORK_TEST_SRC})
     target_include_directories(TestVelyraAppFramework PUBLIC include)
     target_include_directories(TestVelyraAppFramework PRIVATE include/VelyraCore/ImGui)

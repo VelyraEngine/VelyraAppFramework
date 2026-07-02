@@ -61,7 +61,6 @@ namespace Velyra::App {
             if (m_AppSettings.contains(key)) {
                 return Utils::fromJson<T>(m_AppSettings.at(key));
             }
-            SPDLOG_LOGGER_WARN(m_Logger, "Requested setting '{}' not found, returning default value", key);
             static const T default_value{};
             return default_value;
         }
