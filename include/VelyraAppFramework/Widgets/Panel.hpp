@@ -1,25 +1,16 @@
 #pragma once
 
-#include <VelyraUtils/Types/Types.hpp>
-
-namespace Velyra::Core {
-    class Window;
-    class Context;
-}
-
-namespace Velyra::App {
-    class AppData;
-}
+#include <VelyraAppFramework/Widgets/IPanel.hpp>
 
 namespace Velyra::App::Widgets {
 
     using PanelID = UID;
 
-    class Panel {
+    class Panel: public IPanel {
     public:
         Panel(AppData& appData, const std::string& name);
 
-        virtual ~Panel() = default;
+        ~Panel() override = default;
 
         /**
          * @brief Draws the panel
@@ -36,12 +27,7 @@ namespace Velyra::App::Widgets {
         PanelID getID() const { return m_PanelID; }
 
     protected:
-        virtual void drawContent(Core::Window& window, Core::Context& context) = 0;
-
-    protected:
-        AppData& m_AppData;
         const PanelID m_PanelID;
-        const std::string m_Name;
 
         bool m_Open = true;
 

@@ -12,9 +12,8 @@ namespace Velyra::App::Widgets {
     }
 
     Panel::Panel(AppData& appData, const std::string& name):
-    m_AppData(appData),
-    m_PanelID(generatePanelID()),
-    m_Name(name) {
+    IPanel(appData, name),
+    m_PanelID(generatePanelID()) {
         m_ImGuiLabel = name + "###Panel" + std::to_string(m_PanelID);
     }
 

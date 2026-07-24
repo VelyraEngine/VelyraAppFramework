@@ -21,6 +21,8 @@ protected:
         if (ImGui::Button("Close")) {
             setOpen(false);
         }
+
+        drawConfirmationButtons(window, context, "Add", "Cancel", true);
     }
 };
 
