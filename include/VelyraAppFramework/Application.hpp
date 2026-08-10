@@ -32,7 +32,9 @@ namespace Velyra::App {
             m_AppLayer->onAttach(*m_Window, *context);
         }
 
-        void setAppLayer(UP<Layer> layer);
+        Layer& getAppLayer() const {
+            return *m_AppLayer;
+        }
 
         void run();
 
