@@ -47,6 +47,17 @@ namespace Velyra::App {
 
     }
 
+    void Application::setAppLayer(UP<Layer> layer) {
+        const UP<Core::Context>& context = m_Window->getContext();
+        if (m_AppLayer) {
+            m_AppLayer->onDetach(*m_Window, *context);
+        }
+        m_AppLayer = std::move(layer);
+        if (m_AppLayer) {
+            m_AppLayer->onAttach(*m_Window, *context);
+        }
+    }
+
     void Application::run() {
         VL_PRECONDITION(m_Window->getContext() != nullptr, "Context is null")
 
