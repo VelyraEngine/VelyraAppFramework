@@ -36,6 +36,10 @@ namespace Velyra::App {
             return *m_AppLayer;
         }
 
+        AppData& getAppData() {
+            return m_AppData;
+        }
+
         void run();
 
     private:
