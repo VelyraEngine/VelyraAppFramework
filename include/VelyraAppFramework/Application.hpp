@@ -32,6 +32,15 @@ namespace Velyra::App {
             m_AppLayer->onAttach(*m_Window, *context);
         }
 
+        void setAppLayer(UP<Layer> layer) {
+            const UP<Core::Context>& context = m_Window->getContext();
+            if (m_AppLayer) {
+                m_AppLayer->onDetach(*m_Window, *context);
+            }
+            m_AppLayer = std::move(layer);
+            m_AppLayer->onAttach(*m_Window, *context);
+        }
+
         Layer& getAppLayer() const {
             return *m_AppLayer;
         }
