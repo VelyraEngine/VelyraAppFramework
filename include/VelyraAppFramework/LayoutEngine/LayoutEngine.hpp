@@ -2,6 +2,7 @@
 
 #include <VelyraAppFramework/LayoutEngine/LayoutDescription.hpp>
 #include <VelyraAppFramework/LayoutEngine/Layout.hpp>
+#include <VelyraUtils/Logging/LoggingFwd.hpp>
 
 #include <VelyraUtils/DevUtils/PrivateMemberGetter.hpp>
 
