@@ -35,6 +35,14 @@ namespace Velyra::App {
             m_Panels[panel->getPanelID()] = panel;
         }
 
+        SP<Widgets::Panel> getPanel(const Widgets::PanelID panelID) {
+            auto it = m_Panels.find(panelID);
+            if (it != m_Panels.end()) {
+                return it->second;
+            }
+            return nullptr;
+        }
+
         Size getPanelCount() const {
             return m_Panels.size();
         }
