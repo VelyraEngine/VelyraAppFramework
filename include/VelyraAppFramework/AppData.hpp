@@ -43,6 +43,10 @@ namespace Velyra::App {
             return nullptr;
         }
 
+        bool hasPanel(const Widgets::PanelID panelID) const {
+            return m_Panels.contains(panelID);
+        }
+
         Size getPanelCount() const {
             return m_Panels.size();
         }
