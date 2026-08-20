@@ -48,7 +48,7 @@ namespace Velyra::App {
         std::vector<SP<Node>> children;
 
         template<typename... NODES>
-        explicit Split(const NodeType type, NODES&&... nodes): Node(type) {
+        explicit Split(const NodeType type_, NODES&&... nodes): Node(type_) {
             (children.push_back(std::forward<NODES>(nodes)), ...);
         }
 

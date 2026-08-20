@@ -43,7 +43,7 @@ namespace Velyra::App {
         LayoutID m_ActiveLayout = 0;
         std::unordered_map<LayoutID, SP<LayoutNode>> m_Layouts;
 
-        VL_GET_PRIVATE_MEMBER(LayoutEngine, m_Layouts);
+        VL_GET_PRIVATE_MEMBER(LayoutEngine, m_Layouts)
     };
 
 

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <VelyraCore/ImGui/ImGui.hpp>
 #include <VelyraAppFramework/Application.hpp>
 #include <VelyraAppFramework/Widgets/Popup.hpp>
 #include <VelyraAppFramework/Widgets/Panel.hpp>

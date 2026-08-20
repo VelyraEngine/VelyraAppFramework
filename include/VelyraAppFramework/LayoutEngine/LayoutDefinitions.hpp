@@ -1,7 +1,6 @@
 #pragma once
 
-#include <VelyraCore/ImGui/imgui.h>
-#include <VelyraUtils/VelyraUtils.hpp>
+#include <functional>
 
 #define DONT_CARE (-1.0f)
 
@@ -39,14 +38,5 @@ namespace Velyra::App {
 
     inline bool hasFlag(const ResizeDirection dir, const ResizeDirection flag) {
         return (dir & flag) != ResizeDirection::None;
-    }
-
-    inline bool PIXEL_EQUAL(const ImVec2& a, const ImVec2& b) {
-        constexpr float epsilon = 1.0f; // 1 pixel tolerance
-        return (std::abs(a.x - b.x) < epsilon) && (std::abs(a.y - b.y) < epsilon);
-    }
-
-    inline ImVec2 PIXEL_CEIL(const ImVec2& vec) {
-        return {std::ceil(vec.x), std::ceil(vec.y)};
     }
 }

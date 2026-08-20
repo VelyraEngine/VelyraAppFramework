@@ -4,6 +4,15 @@
 
 namespace Velyra::App {
 
+    inline bool PIXEL_EQUAL(const ImVec2& a, const ImVec2& b) {
+        constexpr float epsilon = 1.0f; // 1 pixel tolerance
+        return (std::abs(a.x - b.x) < epsilon) && (std::abs(a.y - b.y) < epsilon);
+    }
+
+    inline ImVec2 PIXEL_CEIL(const ImVec2& vec) {
+        return {std::ceil(vec.x), std::ceil(vec.y)};
+    }
+
     LayoutNode::LayoutNode(const NodeID nodeID, LayoutNode *parent):
     m_NodeID(nodeID),
     m_Parent(parent){
@@ -126,13 +135,13 @@ namespace Velyra::App {
 
     }
 
-    void VerticalSplit::ratioToPixel(const ImVec2 &position, const ImVec2 &size) {
-        LayoutNode::ratioToPixel(position, size);
+    void VerticalSplit::ratioToPixel(const ImVec2 &pos, const ImVec2 &newSize) {
+        LayoutNode::ratioToPixel(pos, newSize);
 
-        float currentY = position.y;
+        float currentY = pos.y;
         for (const auto& child : m_Children) {
-            const float childHeight = std::ceil(size.y * child->ratio);
-            child->ratioToPixel(ImVec2(position.x, currentY), ImVec2(size.x, childHeight));
+            const float childHeight = std::ceil(newSize.y * child->ratio);
+            child->ratioToPixel(ImVec2(pos.x, currentY), ImVec2(newSize.x, childHeight));
             currentY += childHeight;
         }
     }
@@ -203,13 +212,13 @@ if (hasFlag(direction, Left) or hasFlag(direction, Right)) {
 
     }
 
-    void HorizontalSplit::ratioToPixel(const ImVec2 &position, const ImVec2 &size) {
-        LayoutNode::ratioToPixel(position, size);
+    void HorizontalSplit::ratioToPixel(const ImVec2 &pos, const ImVec2 &newSize) {
+        LayoutNode::ratioToPixel(pos, newSize);
 
-        float currentX = position.x;
+        float currentX = pos.x;
         for (const auto& child : m_Children) {
-            const float childWidth = std::ceil(size.x * child->ratio);
-            child->ratioToPixel(ImVec2(currentX, position.y), ImVec2(childWidth, size.y));
+            const float childWidth = std::ceil(newSize.x * child->ratio);
+            child->ratioToPixel(ImVec2(currentX, pos.y), ImVec2(childWidth, newSize.y));
             currentX += childWidth;
         }
     }
