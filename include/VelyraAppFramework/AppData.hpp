@@ -51,8 +51,6 @@ namespace Velyra::App {
             return m_Panels.size();
         }
 
-    private:
-
         void drawPopups(Core::Window& window, Core::Context& context);
 
         void drawPanels(Core::Window& window, Core::Context& context);
