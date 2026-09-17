@@ -25,6 +25,12 @@ namespace Velyra::App {
 
         LayoutID getActiveLayout() const;
 
+        /**
+         * @brief Requests that the given layout be re-pulled from its Layout source and reconciled against the live
+         *        tree on the next frame. User-adjusted sizes and panel state are preserved for nodes that remain.
+         */
+        void invalidateLayout(LayoutID layoutID) const;
+
         void addPopup(const SP<Widgets::Popup> &popup);
 
         void openPopup(Widgets::PopupID popupID);

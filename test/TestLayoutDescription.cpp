@@ -79,3 +79,60 @@ TEST_F(TestLayoutDescription, Layout1) {
     ASSERT_EQ(panelF->desc.name, "F");
     ASSERT_FLOAT_EQ(panelF->desc.sizeRatio, 0.7f);
 }
+
+TEST_F(TestLayoutDescription, CreatePanelWithPixelSizingAndKey) {
+    const Panel panel{
+        .name = "Toolbar",
+        .sizing = pixels(40.0f, 20.0f, 80.0f),
+        .key = 42
+    };
+
+    auto panelNode = createPanel(panel);
+
+    const auto* panelNodePtr = dynamic_cast<PanelNode*>(panelNode.get());
+    ASSERT_NE(panelNodePtr, nullptr);
+    EXPECT_EQ(panelNodePtr->desc.sizing.mode, SizeMode::Pixels);
+    EXPECT_FLOAT_EQ(panelNodePtr->desc.sizing.value, 40.0f);
+    EXPECT_FLOAT_EQ(panelNodePtr->desc.sizing.minPx, 20.0f);
+    EXPECT_FLOAT_EQ(panelNodePtr->desc.sizing.maxPx, 80.0f);
+    EXPECT_EQ(panelNodePtr->desc.key, 42u);
+}
+
+TEST_F(TestLayoutDescription, SplitDescSetsSizingAndKey) {
+    auto split = verticalSplit({.sizing = ratio(0.5f), .key = 7},
+        createPanel({.name = "A"}),
+        createPanel({.name = "B"})
+    );
+
+    auto* splitPtr = dynamic_cast<Split*>(split.get());
+    ASSERT_NE(splitPtr, nullptr);
+    EXPECT_EQ(splitPtr->type, NodeType::VerticalSplit);
+    EXPECT_EQ(splitPtr->sizing.mode, SizeMode::Ratio);
+    EXPECT_FLOAT_EQ(splitPtr->sizing.value, 0.5f);
+    EXPECT_EQ(splitPtr->key, 7u);
+    ASSERT_EQ(splitPtr->children.size(), 2);
+}
+
+TEST_F(TestLayoutDescription, SplitDescSizeRatioConvenience) {
+    auto split = horizontalSplit({.sizeRatio = 0.25f},
+        createPanel({.name = "Only"})
+    );
+
+    auto* splitPtr = dynamic_cast<Split*>(split.get());
+    ASSERT_NE(splitPtr, nullptr);
+    EXPECT_EQ(splitPtr->sizing.mode, SizeMode::Ratio);
+    EXPECT_FLOAT_EQ(splitPtr->sizing.value, 0.25f);
+}
+
+TEST_F(TestLayoutDescription, PlainSplitHasAutoSizing) {
+    auto split = horizontalSplit(
+        createPanel({.name = "A"}),
+        createPanel({.name = "B"})
+    );
+
+    auto* splitPtr = dynamic_cast<Split*>(split.get());
+    ASSERT_NE(splitPtr, nullptr);
+    EXPECT_EQ(splitPtr->sizing.mode, SizeMode::Ratio);
+    EXPECT_FLOAT_EQ(splitPtr->sizing.value, DONT_CARE);
+    EXPECT_EQ(splitPtr->key, 0u);
+}

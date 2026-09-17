@@ -23,6 +23,10 @@ namespace Velyra::App {
         return m_LayoutEngine.getActiveLayout();
     }
 
+    void AppData::invalidateLayout(const LayoutID layoutID) const {
+        m_LayoutEngine.markDirty(layoutID);
+    }
+
     void AppData::addPopup(const SP<Widgets::Popup> &popup) {
         m_Popups[popup->getID()] = popup;
     }

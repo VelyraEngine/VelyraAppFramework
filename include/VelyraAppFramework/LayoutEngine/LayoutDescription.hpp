@@ -26,7 +26,9 @@ namespace Velyra::App {
         DrawFunction drawFunction = defaultDrawFunction;
         bool resizable = true;
         bool collapsible = false;
-        float sizeRatio = DONT_CARE; // Relative size ratio compared to other panels in the same split
+        float sizeRatio = DONT_CARE; // Legacy convenience: relative size ratio. Ignored when 'sizing' is set.
+        Sizing sizing = {};          // Full sizing (ratio/pixels + min/max clamps). Overrides sizeRatio.
+        NodeID key = 0;              // Stable reconciliation key (0 = derived from name).
     };
 
     template<typename OBJECT>
@@ -46,6 +48,8 @@ namespace Velyra::App {
 
     struct VL_API Split: public Node {
         std::vector<SP<Node>> children;
+        Sizing sizing = {};  // Sizing of this split within its parent split (auto ratio by default).
+        NodeID key = 0;      // Stable reconciliation key (0 = structural, matched by position).
 
         template<typename... NODES>
         explicit Split(const NodeType type_, NODES&&... nodes): Node(type_) {
@@ -53,6 +57,14 @@ namespace Velyra::App {
         }
 
         ~Split() override = default;
+    };
+
+    // Optional leading descriptor for splits. Passing a braced-init-list (e.g. {.sizing = pixels(40)})
+    // binds only to this overload, so existing split calls without a descriptor stay unambiguous.
+    struct VL_API SplitDesc {
+        float sizeRatio = DONT_CARE;
+        Sizing sizing = {};
+        NodeID key = 0;
     };
 
     inline UP<Node> createPanel(const Panel& desc) {
@@ -69,8 +81,24 @@ namespace Velyra::App {
     }
 
     template<typename... NODES>
+    UP<Node> horizontalSplit(const SplitDesc& desc, NODES&&... nodes) {
+        auto split = createUP<Split>(NodeType::HorizontalSplit, std::forward<NODES>(nodes)...);
+        split->sizing = effectiveSizing(desc.sizing, desc.sizeRatio);
+        split->key = desc.key;
+        return split;
+    }
+
+    template<typename... NODES>
     UP<Node> verticalSplit(NODES&&... nodes) {
         return createUP<Split>(NodeType::VerticalSplit, std::forward<NODES>(nodes)...);
+    }
+
+    template<typename... NODES>
+    UP<Node> verticalSplit(const SplitDesc& desc, NODES&&... nodes) {
+        auto split = createUP<Split>(NodeType::VerticalSplit, std::forward<NODES>(nodes)...);
+        split->sizing = effectiveSizing(desc.sizing, desc.sizeRatio);
+        split->key = desc.key;
+        return split;
     }
 
 }

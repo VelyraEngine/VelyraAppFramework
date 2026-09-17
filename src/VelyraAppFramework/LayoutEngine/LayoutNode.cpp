@@ -4,48 +4,117 @@
 
 namespace Velyra::App {
 
-    inline bool PIXEL_EQUAL(const ImVec2& a, const ImVec2& b) {
-        constexpr float epsilon = 1.0f; // 1 pixel tolerance
-        return (std::abs(a.x - b.x) < epsilon) && (std::abs(a.y - b.y) < epsilon);
-    }
+    namespace {
 
-    inline ImVec2 PIXEL_CEIL(const ImVec2& vec) {
-        return {std::ceil(vec.x), std::ceil(vec.y)};
-    }
-
-    LayoutNode::LayoutNode(const NodeID nodeID, LayoutNode *parent):
-    m_NodeID(nodeID),
-    m_Parent(parent){
-
-    }
-
-    void LayoutNode::calculateUnknownRatio() {
-        // First, determine how much ratio is known and how many children have unknown ratio
-        float knownRatio = 0.0f;
-        Size childrenWithUnknownRatio = 0;
-        for (const auto& child : m_Children) {
-            child->calculateUnknownRatio();
-            if (child->ratio > DONT_CARE) {
-                knownRatio += child->ratio;
-            }
-            else {
-                childrenWithUnknownRatio++;
-            }
+        inline bool PIXEL_EQUAL(const ImVec2& a, const ImVec2& b) {
+            constexpr float epsilon = 1.0f; // 1 pixel tolerance
+            return (std::abs(a.x - b.x) < epsilon) && (std::abs(a.y - b.y) < epsilon);
         }
 
-        // Then distribute the remaining ratio among the unknown children
-        const float remainingRatio = 1.0f - knownRatio;
-        if (childrenWithUnknownRatio > 0) {
-            const float ratioPerUnknownChild = remainingRatio / static_cast<float>(childrenWithUnknownRatio);
-            for (const auto& child : m_Children) {
-                if (child->ratio < DONT_CARE + 0.001f) {
-                    child->ratio = ratioPerUnknownChild;
+        inline ImVec2 PIXEL_CEIL(const ImVec2& vec) {
+            return {std::ceil(vec.x), std::ceil(vec.y)};
+        }
+
+        float clampPx(float px, const Sizing& s) {
+            if (s.minPx > DONT_CARE && px < s.minPx) px = s.minPx;
+            if (s.maxPx > DONT_CARE && px > s.maxPx) px = s.maxPx;
+            return px;
+        }
+
+        /**
+         * @brief Resolves the pixel size of every child along a split axis given the axis length and the children's
+         *        sizings. Fixed-pixel children are reserved first, the remaining space is distributed among ratio
+         *        children by weight (DONT_CARE ratios share the leftover equally), min/max clamps are honoured with a
+         *        re-flow pass, and an over-constrained axis is shrunk proportionally to fit.
+         */
+        std::vector<float> solveSizes(const float axis, const std::vector<Sizing>& items) {
+            const Size n = items.size();
+            std::vector<float> out(n, 0.0f);
+            std::vector<bool> locked(n, false);
+
+            // 1. Reserve fixed-pixel children.
+            float fixedTotal = 0.0f;
+            for (Size i = 0; i < n; ++i) {
+                if (items[i].mode == SizeMode::Pixels && items[i].value > DONT_CARE) {
+                    const float px = clampPx(items[i].value, items[i]);
+                    out[i] = px;
+                    locked[i] = true;
+                    fixedTotal += px;
                 }
             }
+
+            // 2. Resolve ratio weights, auto-distributing the unknown (DONT_CARE) ratios.
+            float knownRatio = 0.0f;
+            Size autoCount = 0;
+            for (Size i = 0; i < n; ++i) {
+                if (locked[i]) continue;
+                if (items[i].value > DONT_CARE) knownRatio += items[i].value;
+                else autoCount++;
+            }
+            const float autoRatio = (autoCount > 0) ? std::max(0.0f, 1.0f - knownRatio) / static_cast<float>(autoCount) : 0.0f;
+
+            std::vector<float> weight(n, 0.0f);
+            for (Size i = 0; i < n; ++i) {
+                if (locked[i]) continue;
+                weight[i] = (items[i].value > DONT_CARE) ? items[i].value : autoRatio;
+            }
+
+            // 3. Distribute the remaining space among ratio children, locking any that hit a clamp and re-flowing.
+            bool changed = true;
+            while (changed) {
+                changed = false;
+                const float remaining = std::max(0.0f, axis - fixedTotal);
+                float weightSum = 0.0f;
+                for (Size i = 0; i < n; ++i) if (!locked[i]) weightSum += weight[i];
+                if (weightSum <= 0.0f) break;
+
+                for (Size i = 0; i < n; ++i) {
+                    if (locked[i]) continue;
+                    const float px = remaining * (weight[i] / weightSum);
+                    const float clamped = clampPx(px, items[i]);
+                    out[i] = clamped;
+                    if (std::abs(clamped - px) > 0.001f) {
+                        locked[i] = true;
+                        fixedTotal += clamped;
+                        changed = true;
+                        break; // re-flow the remaining unlocked children
+                    }
+                }
+            }
+
+            // 4. Shrink proportionally if clamps pushed the total past the axis length.
+            float total = 0.0f;
+            for (const float v : out) total += v;
+            if (total > axis + 0.5f && total > 0.0f) {
+                const float scale = axis / total;
+                for (float& v : out) v *= scale;
+            }
+            return out;
         }
-        if (m_Parent == nullptr) {
-            ratio = 1.0f; // Root node always has ratio 1.0
+
+        float minSizeOf(const LayoutNode& child, const float axis) {
+            if (child.sizing.minPx > DONT_CARE) return child.sizing.minPx;
+            return axis * 0.05f;
         }
+
+        // Writes a new pixel size back into a child's live sizing, preserving whether it is pixel- or ratio-based.
+        void writeBackSize(LayoutNode& child, const float newPx, const float axis) {
+            if (child.sizing.mode == SizeMode::Pixels) {
+                child.sizing.value = newPx;
+            }
+            else if (axis > 0.0f) {
+                child.sizing.value = newPx / axis;
+            }
+        }
+
+    }
+
+    LayoutNode::LayoutNode(const NodeID nodeID, const NodeID reconcileKey, const NodeType type, LayoutNode *parent):
+    m_NodeID(nodeID),
+    m_ReconcileKey(reconcileKey),
+    m_Type(type),
+    m_Parent(parent){
+
     }
 
     void LayoutNode::ratioToPixel(const ImVec2 &pixelPosition, const ImVec2 &pixelSize) {
@@ -55,10 +124,10 @@ namespace Velyra::App {
 
     /////////////////////// PanelImpl Implementation ///////////////////////
 
-    PanelImpl::PanelImpl(const NodeID nodeID, LayoutNode *parent, const Panel &desc):
-    LayoutNode(nodeID, parent),
+    PanelImpl::PanelImpl(const NodeID nodeID, const NodeID reconcileKey, LayoutNode *parent, const Panel &desc):
+    LayoutNode(nodeID, reconcileKey, NodeType::Panel, parent),
     m_Panel(desc){
-        ratio = desc.sizeRatio;
+
     }
 
     void PanelImpl::draw(Core::Window &window, Core::Context &context) {
@@ -130,24 +199,29 @@ namespace Velyra::App {
 
     /////////////////////// VerticalSplit Implementation ///////////////////////
 
-    VerticalSplit::VerticalSplit(const NodeID nodeID, LayoutNode *parent):
-    LayoutNode(nodeID, parent) {
+    VerticalSplit::VerticalSplit(const NodeID nodeID, const NodeID reconcileKey, LayoutNode *parent):
+    LayoutNode(nodeID, reconcileKey, NodeType::VerticalSplit, parent) {
 
     }
 
     void VerticalSplit::ratioToPixel(const ImVec2 &pos, const ImVec2 &newSize) {
         LayoutNode::ratioToPixel(pos, newSize);
 
+        std::vector<Sizing> items;
+        items.reserve(m_Children.size());
+        for (const auto& child : m_Children) items.push_back(child->sizing);
+        const std::vector<float> heights = solveSizes(newSize.y, items);
+
         float currentY = pos.y;
-        for (const auto& child : m_Children) {
-            const float childHeight = std::ceil(newSize.y * child->ratio);
-            child->ratioToPixel(ImVec2(pos.x, currentY), ImVec2(newSize.x, childHeight));
+        for (Size i = 0; i < m_Children.size(); ++i) {
+            const float childHeight = std::ceil(heights[i]);
+            m_Children[i]->ratioToPixel(ImVec2(pos.x, currentY), ImVec2(newSize.x, childHeight));
             currentY += childHeight;
         }
     }
 
     void VerticalSplit::localUpdate(const NodeID childID, const ImVec2& pixelDeltaSize, const ResizeDirection direction) {
-if (hasFlag(direction, Left) or hasFlag(direction, Right)) {
+        if (hasFlag(direction, Left) or hasFlag(direction, Right)) {
             if (m_Parent) {
                 m_Parent->localUpdate(m_NodeID, pixelDeltaSize, direction);
             }
@@ -163,22 +237,22 @@ if (hasFlag(direction, Left) or hasFlag(direction, Right)) {
                 has_next_sibling = (i < m_Children.size() - 1);
             }
         }
-        // 2. Determine how the ratio changed
-        const float delta_ratio = pixelDeltaSize.y / size.y;
+        // 2. The drag delta along this split's axis
+        const float axis = size.y;
+        const float deltaPx = pixelDeltaSize.y;
 
-        // 3. update ratios
+        // 3. Move the border, preserving each neighbour's sizing mode and honouring its minimum size
         if (hasFlag(direction, Top)) {
             if (has_previous_sibling) {
-                // Increase current child ratio, decrease previous sibling ratio
                 const auto& previous_sibling = m_Children[child_idx - 1];
                 const auto& current_child = m_Children[child_idx];
 
-                const float new_current_ratio = current_child->ratio + delta_ratio;
-                const float new_previous_ratio = previous_sibling->ratio - delta_ratio;
+                const float new_current_px = current_child->size.y + deltaPx;
+                const float new_previous_px = previous_sibling->size.y - deltaPx;
 
-                if (new_current_ratio >= 0.05f && new_previous_ratio >= 0.05f) {
-                    current_child->ratio = new_current_ratio;
-                    previous_sibling->ratio = new_previous_ratio;
+                if (new_current_px >= minSizeOf(*current_child, axis) && new_previous_px >= minSizeOf(*previous_sibling, axis)) {
+                    writeBackSize(*current_child, new_current_px, axis);
+                    writeBackSize(*previous_sibling, new_previous_px, axis);
                 }
             }
             else if (m_Parent) {
@@ -187,16 +261,15 @@ if (hasFlag(direction, Left) or hasFlag(direction, Right)) {
         }
         else if (hasFlag(direction, Bottom)) {
             if (has_next_sibling) {
-                // Increase current child ratio, decrease next sibling ratio
                 const auto& next_sibling = m_Children[child_idx + 1];
                 const auto& current_child = m_Children[child_idx];
 
-                const float new_current_ratio = current_child->ratio + delta_ratio;
-                const float new_next_ratio = next_sibling->ratio - delta_ratio;
+                const float new_current_px = current_child->size.y + deltaPx;
+                const float new_next_px = next_sibling->size.y - deltaPx;
 
-                if (new_current_ratio >= 0.05f && new_next_ratio >= 0.05f) {
-                    current_child->ratio = new_current_ratio;
-                    next_sibling->ratio = new_next_ratio;
+                if (new_current_px >= minSizeOf(*current_child, axis) && new_next_px >= minSizeOf(*next_sibling, axis)) {
+                    writeBackSize(*current_child, new_current_px, axis);
+                    writeBackSize(*next_sibling, new_next_px, axis);
                 }
             }
             else if (m_Parent) {
@@ -207,24 +280,29 @@ if (hasFlag(direction, Left) or hasFlag(direction, Right)) {
 
     /////////////////////// HorizontalSplit Implementation ///////////////////////
 
-    HorizontalSplit::HorizontalSplit(const NodeID nodeID, LayoutNode *parent):
-    LayoutNode(nodeID, parent) {
+    HorizontalSplit::HorizontalSplit(const NodeID nodeID, const NodeID reconcileKey, LayoutNode *parent):
+    LayoutNode(nodeID, reconcileKey, NodeType::HorizontalSplit, parent) {
 
     }
 
     void HorizontalSplit::ratioToPixel(const ImVec2 &pos, const ImVec2 &newSize) {
         LayoutNode::ratioToPixel(pos, newSize);
 
+        std::vector<Sizing> items;
+        items.reserve(m_Children.size());
+        for (const auto& child : m_Children) items.push_back(child->sizing);
+        const std::vector<float> widths = solveSizes(newSize.x, items);
+
         float currentX = pos.x;
-        for (const auto& child : m_Children) {
-            const float childWidth = std::ceil(newSize.x * child->ratio);
-            child->ratioToPixel(ImVec2(currentX, pos.y), ImVec2(childWidth, newSize.y));
+        for (Size i = 0; i < m_Children.size(); ++i) {
+            const float childWidth = std::ceil(widths[i]);
+            m_Children[i]->ratioToPixel(ImVec2(currentX, pos.y), ImVec2(childWidth, newSize.y));
             currentX += childWidth;
         }
     }
 
     void HorizontalSplit::localUpdate(const NodeID childID, const ImVec2 &pixelDeltaSize, const ResizeDirection direction) {
- if (hasFlag(direction, Top) or hasFlag(direction, Bottom)) {
+        if (hasFlag(direction, Top) or hasFlag(direction, Bottom)) {
             if (m_Parent) {
                 m_Parent->localUpdate(m_NodeID, pixelDeltaSize, direction);
             }
@@ -240,22 +318,22 @@ if (hasFlag(direction, Left) or hasFlag(direction, Right)) {
                 has_next_sibling = (i < m_Children.size() - 1);
             }
         }
-        // 2. Determine how the ratio changed
-        float delta_ratio = pixelDeltaSize.x / size.x;
+        // 2. The drag delta along this split's axis
+        const float axis = size.x;
+        const float deltaPx = pixelDeltaSize.x;
 
-        // 3. update ratios
+        // 3. Move the border, preserving each neighbour's sizing mode and honouring its minimum size
         if (hasFlag(direction, Left)) {
             if (has_previous_sibling) {
-                // Increase current child ratio, decrease previous sibling ratio
                 const auto& previous_sibling = m_Children[child_idx - 1];
                 const auto& current_child = m_Children[child_idx];
 
-                const float new_current_ratio = current_child->ratio + delta_ratio;
-                const float new_previous_ratio = previous_sibling->ratio - delta_ratio;
+                const float new_current_px = current_child->size.x + deltaPx;
+                const float new_previous_px = previous_sibling->size.x - deltaPx;
 
-                if (new_current_ratio >= 0.05f && new_previous_ratio >= 0.05f) {
-                    current_child->ratio = new_current_ratio;
-                    previous_sibling->ratio = new_previous_ratio;
+                if (new_current_px >= minSizeOf(*current_child, axis) && new_previous_px >= minSizeOf(*previous_sibling, axis)) {
+                    writeBackSize(*current_child, new_current_px, axis);
+                    writeBackSize(*previous_sibling, new_previous_px, axis);
                 }
             }
             else if (m_Parent) {
@@ -264,16 +342,15 @@ if (hasFlag(direction, Left) or hasFlag(direction, Right)) {
         }
         else if (hasFlag(direction, Right)) {
             if (has_next_sibling) {
-                // Increase current child ratio, decrease next sibling ratio
                 const auto& next_sibling = m_Children[child_idx + 1];
                 const auto& current_child = m_Children[child_idx];
 
-                const float new_current_ratio = current_child->ratio + delta_ratio;
-                const float new_next_ratio = next_sibling->ratio - delta_ratio;
+                const float new_current_px = current_child->size.x + deltaPx;
+                const float new_next_px = next_sibling->size.x - deltaPx;
 
-                if (new_current_ratio >= 0.05f && new_next_ratio >= 0.05f) {
-                    current_child->ratio = new_current_ratio;
-                    next_sibling->ratio = new_next_ratio;
+                if (new_current_px >= minSizeOf(*current_child, axis) && new_next_px >= minSizeOf(*next_sibling, axis)) {
+                    writeBackSize(*current_child, new_current_px, axis);
+                    writeBackSize(*next_sibling, new_next_px, axis);
                 }
             }
             else if (m_Parent) {

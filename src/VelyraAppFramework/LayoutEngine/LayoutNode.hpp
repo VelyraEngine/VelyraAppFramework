@@ -1,13 +1,17 @@
 #pragma once
 
+#include <VelyraCore/ImGui/ImGui.hpp>
+
 #include <VelyraAppFramework/LayoutEngine/LayoutDefinitions.hpp>
 #include <VelyraAppFramework/LayoutEngine/LayoutDescription.hpp>
 
 namespace Velyra::App {
 
+    class LayoutEngine;
+
     class LayoutNode {
     public:
-        explicit LayoutNode(NodeID nodeID, LayoutNode* parent);
+        LayoutNode(NodeID nodeID, NodeID reconcileKey, NodeType type, LayoutNode* parent);
 
         virtual ~LayoutNode() = default;
 
@@ -17,12 +21,9 @@ namespace Velyra::App {
 
         const std::vector<UP<LayoutNode>>& getChildren() const { return m_Children; }
 
-        /**
-         * @brief The user may specify the ratio of some panels as DONT_CARE. Figure out the ratio for those panels
-         *        based on the remaining ratio after accounting for the panels with known ratio. This should be called
-         *        after creating the layout tree and before calculating the layout for the first time.
-         */
-        void calculateUnknownRatio();
+        NodeType getType() const { return m_Type; }
+
+        NodeID getReconcileKey() const { return m_ReconcileKey; }
 
         virtual void draw(Core::Window& window, Core::Context& context) {
             for (const auto& child : m_Children) {
@@ -31,9 +32,9 @@ namespace Velyra::App {
         }
 
         /**
-         * @brief Converts the ratio-based position and size of this layout node to pixel-based position and size based
-         *        on the given position and size of the entire layout box. This should be called every time the window
-         *        is resized or when the layout is first calculated.
+         * @brief Converts the ratio/pixel-based sizing of this node's children into pixel-based positions and sizes,
+         *        based on the given position and size of this node's layout box. This should be called every time the
+         *        window is resized or when the layout is first calculated.
          * @param pixelPosition The position in pixels that this node should use as the top-left corner of its layout box.
          * @param pixelSize The size in pixels that this node should use as the size of its layout box.
          */
@@ -44,18 +45,23 @@ namespace Velyra::App {
     public:
         const NodeID m_NodeID;
 
-        float ratio = DONT_CARE;
+        Sizing sizing = {};         // Live sizing of this node within its parent (may be user-adjusted at runtime).
+        Sizing lastDescSizing = {}; // Last sizing supplied by the description, used to detect code-driven changes.
         ImVec2 position = ImVec2(0.0f, 0.0f);
         ImVec2 size = ImVec2(0.0f, 0.0f);
 
     protected:
+        friend class LayoutEngine;
+
+        const NodeID m_ReconcileKey;
+        const NodeType m_Type;
         LayoutNode* m_Parent = nullptr;
         std::vector<UP<LayoutNode>> m_Children;
     };
 
     class PanelImpl: public LayoutNode {
     public:
-        PanelImpl(NodeID nodeID, LayoutNode* parent, const Panel& desc);
+        PanelImpl(NodeID nodeID, NodeID reconcileKey, LayoutNode* parent, const Panel& desc);
 
         ~PanelImpl() override = default;
 
@@ -75,7 +81,7 @@ namespace Velyra::App {
 
     class VerticalSplit: public LayoutNode {
     public:
-        VerticalSplit(NodeID nodeID, LayoutNode* parent);
+        VerticalSplit(NodeID nodeID, NodeID reconcileKey, LayoutNode* parent);
 
         ~VerticalSplit() override = default;
 
@@ -86,7 +92,7 @@ namespace Velyra::App {
 
     class HorizontalSplit: public LayoutNode {
     public:
-        HorizontalSplit(NodeID nodeID, LayoutNode* parent);
+        HorizontalSplit(NodeID nodeID, NodeID reconcileKey, LayoutNode* parent);
 
         ~HorizontalSplit() override = default;
 
