@@ -67,9 +67,11 @@ namespace Velyra::App {
                 // onImGui
                 context->onImGuiBegin();
                 m_AppLayer->mainMenuBar(*m_Window, *context);
+                // The framebuffer is in physical pixels (larger on HiDPI) and includes the menu bar, so use ImGui's work area.
+                const ImGuiViewport* viewport = ImGui::GetMainViewport();
                 m_LayoutEngine.draw(
                     0.0f, 0.0f,
-                    static_cast<float>(context->getClientWidth()), static_cast<float>(context->getClientHeight()),
+                    viewport->WorkSize.x, viewport->WorkSize.y,
                     *m_Window, *context
                 );
                 m_AppLayer->onImGui(*m_Window, *context);
