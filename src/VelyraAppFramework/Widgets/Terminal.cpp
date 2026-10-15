@@ -33,19 +33,29 @@ namespace Velyra::App::Widgets {
 
     void Terminal::addLine(const TerminalLine& line) {
         std::lock_guard<std::mutex> lock(m_BufferMutex);
-        m_Lines.push_back(line);
-        if (m_Lines.size() > m_MaxLines) {
-            m_Lines.pop_front();
+
+        // Sadly, we cannot make sure that nobody is sending us multi-line
+        // strings, to keep ImGuiListClipper correct, we need to split them into multiple lines.
+        std::istringstream stream(line.content);
+        std::string part;
+
+        while (std::getline(stream, part, '\n')) {
+            TerminalLine splitLine;
+            splitLine.color = line.color;
+            splitLine.timestamp = line.timestamp;
+            splitLine.content = std::move(part);
+
+            m_Lines.push_back(std::move(splitLine));
+
+            if (m_Lines.size() > m_MaxLines) {
+                m_Lines.pop_front();
+            }
         }
     }
 
     void Terminal::addLines(const std::vector<TerminalLine>& lines) {
-        std::lock_guard<std::mutex> lock(m_BufferMutex);
         for (const auto& line : lines) {
-            m_Lines.push_back(line);
-            if (m_Lines.size() > m_MaxLines) {
-                m_Lines.pop_front();
-            }
+            addLine(line);
         }
     }
 
