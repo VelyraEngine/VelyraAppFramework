@@ -76,8 +76,7 @@ namespace Velyra::App::Widgets {
                 ImGuiTableFlags_NoPadOuterX |
                 ImGuiTableFlags_NoPadInnerX |
                 ImGuiTableFlags_ScrollY;
-        // TODO: Dirty hack to always draw the bottom line
-        const ImVec2 size = ImVec2(0, ImGui::GetContentRegionAvail().y - 30.0f);
+        const ImVec2 size = ImVec2(0, ImGui::GetContentRegionAvail().y);
         if (ImGui::BeginTable("terminal_output", 2, flags, size)) {
             ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, 160.0f); // fixed width for line numbers
             ImGui::TableSetupColumn("Text", ImGuiTableColumnFlags_WidthStretch);
