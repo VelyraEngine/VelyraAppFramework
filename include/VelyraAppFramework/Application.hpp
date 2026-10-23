@@ -61,9 +61,9 @@ namespace Velyra::App {
 
         void destroyAppData();
 
-        void destroyImGuiContext() const;
+        void destroyImGuiContext();
 
-        void destroyContext() const;
+        void destroyContext();
 
         void destroyWindow();
 

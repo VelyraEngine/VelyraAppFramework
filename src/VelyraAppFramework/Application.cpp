@@ -160,17 +160,29 @@ namespace Velyra::App {
         m_AppData.reset();
     }
 
-    void Application::destroyImGuiContext() const {
+    void Application::destroyImGuiContext() {
         VL_PRECONDITION(m_Window != nullptr, "Failed to create window");
         VL_PRECONDITION(m_Window->getContext() != nullptr, "Failed to create context");
 
         const UP<Core::Context>& context = m_Window->getContext();
+        ImGuiSettings imGuiSettings;
+        imGuiSettings.useDocking = ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable;
+        imGuiSettings.useViewports = ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable;
+        imGuiSettings.saveImGuiWindowData = ImGui::GetIO().IniFilename != nullptr;
+        m_Settings.setSetting<ImGuiSettings>("ImGuiSettings", imGuiSettings);
+
         context->DestroyImGuiContext();
     }
 
-    void Application::destroyContext() const {
+    void Application::destroyContext() {
         VL_PRECONDITION(m_Window != nullptr, "Failed to create window");
         VL_PRECONDITION(m_Window->getContext() != nullptr, "Failed to create context");
+
+        const UP<Core::Context>& context = m_Window->getContext();
+        ContextSettings settings;
+        settings.enableVSync = context->isVerticalSynchronisationEnabled();
+        settings.graphicsAPI = context->getType();
+        m_Settings.setSetting<ContextSettings>("ContextSettings", settings);
 
         m_Window->destroyContext();
     }
