@@ -1,7 +1,7 @@
-#include <Pch.hpp>
+#include <../Shared/Pch.hpp>
 
-#include <VelyraAppFramework/Widgets/Popup.hpp>
 #include <VelyraAppFramework/Styles.hpp>
+#include <VelyraAppFramework/Widgets/Popup.hpp>
 
 namespace Velyra::App::Widgets {
 
@@ -11,14 +11,14 @@ namespace Velyra::App::Widgets {
 
     }
 
-    void Popup::draw(Core::Window& window, Core::Context& context) {
+    void Popup::draw() {
         if (!m_Open) {
             return;
         }
         ImGui::OpenPopup(m_Name.c_str());
         bool isOpen = true;
         if (ImGui::BeginPopupModal(m_Name.c_str(), &isOpen)) {
-            drawContent(window, context);
+            drawContent();
             ImGui::EndPopup();
         }
         if (!isOpen) {
@@ -37,13 +37,12 @@ namespace Velyra::App::Widgets {
         }
     }
 
-    void Popup::drawConfirmationButtons(Core::Window &window, Core::Context &context, const std::string &confirmButtonLabel,
-        const std::string &cancelButtonLabel, const bool valid) {
+    void Popup::drawConfirmationButtons(const std::string &confirmButtonLabel, const std::string &cancelButtonLabel, const bool valid) {
 
         ImGui::BeginDisabled(!valid);
         ImGui::PushStyleColor(ImGuiCol_Button, Styles::ColorGreen);
         if (ImGui::Button(confirmButtonLabel.c_str())) {
-            onConfirm(window, context);
+            onConfirm();
             reset();
             setOpen(false);
         }
@@ -52,7 +51,7 @@ namespace Velyra::App::Widgets {
         ImGui::SameLine();
         ImGui::PushStyleColor(ImGuiCol_Button, Styles::ColorRed);
         if (ImGui::Button(cancelButtonLabel.c_str())) {
-            onCancel(window, context);
+            onCancel();
             reset();
             setOpen(false);
         }

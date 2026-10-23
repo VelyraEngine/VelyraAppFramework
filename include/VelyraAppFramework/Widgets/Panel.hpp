@@ -4,23 +4,17 @@
 
 namespace Velyra::App::Widgets {
 
-    using PanelID = UID;
-
     class Panel: public IPanel {
     public:
-        Panel(AppData& appData, const std::string& name);
+        Panel(AppData& appData, const std::string& name, PanelID panelID = generatePanelID());
 
         ~Panel() override = default;
 
         /**
          * @brief Draws the panel
-         * @param window
-         * @param context
          * @return false if the panel is closed, true if it is still open
          */
-        bool draw(Core::Window& window, Core::Context& context);
-
-        PanelID getPanelID() const { return m_PanelID; }
+        bool draw();
 
         const std::string& getName() const { return m_Name; }
 
@@ -33,8 +27,6 @@ namespace Velyra::App::Widgets {
 
     private:
         std::string m_ImGuiLabel;
-
-
     };
 
 }

@@ -1,19 +1,19 @@
 #pragma once
 
-#include <VelyraAppFramework/AppData.hpp>
+#include <VelyraAppFramework/AppInclude.hpp>
+#include <VelyraAppFramework/Settings.hpp>
 #include <VelyraAppFramework/Layer.hpp>
-#include <VelyraCore/Window/Window.hpp>
-#include "LayoutEngine/LayoutEngine.hpp"
+#include <VelyraUtils/Logging/LoggingFwd.hpp>
 
 namespace Velyra::App {
 
     class Layer;
+    class AppData;
 
     struct VL_API ApplicationDesc {
-        bool settingsEnableSave = true;
         bool useImPlot = false;
-        bool saveImGuiWindowData = false; // Creates imgui.ini to store window settings
         std::string applicationName;
+        SettingsDesc settings;
     };
 
     class VL_API Application {
@@ -24,40 +24,52 @@ namespace Velyra::App {
 
         template<typename T, typename... Args>
         void createAppLayer(Args&&... args) {
-            const UP<Core::Context>& context = m_Window->getContext();
             if (m_AppLayer) {
-                m_AppLayer->onDetach(*m_Window, *context);
+                m_AppLayer->onDetach();
             }
-            m_AppLayer = createUP<T>(m_AppData, std::forward<Args>(args)...);
-            m_AppLayer->onAttach(*m_Window, *context);
+            m_AppLayer = createUP<T>(*m_AppData, std::forward<Args>(args)...);
+            m_AppLayer->onAttach();
         }
 
         void setAppLayer(UP<Layer> layer) {
-            const UP<Core::Context>& context = m_Window->getContext();
             if (m_AppLayer) {
-                m_AppLayer->onDetach(*m_Window, *context);
+                m_AppLayer->onDetach();
             }
             m_AppLayer = std::move(layer);
-            m_AppLayer->onAttach(*m_Window, *context);
+            m_AppLayer->onAttach();
         }
 
         Layer& getAppLayer() const {
             return *m_AppLayer;
         }
 
-        AppData& getAppData() {
-            return m_AppData;
-        }
-
         void run();
 
     private:
 
+        void createWindow(const ApplicationDesc& appDesc);
+
+        void createContext() const;
+
+        void createImGuiContext(const ApplicationDesc& appDesc) const;
+
+        void createAppData(const ProgramArgs& programArgs);
+
         void processEvents() const;
 
+        void destroyAppData();
+
+        void destroyImGuiContext() const;
+
+        void destroyContext() const;
+
+        void destroyWindow();
+
     private:
-        LayoutEngine m_LayoutEngine;
-        AppData m_AppData;
+        Utils::LogPtr m_Logger;
+
+        Settings m_Settings;
+        UP<AppData> m_AppData;
         UP<Layer> m_AppLayer;
         UP<Core::Window> m_Window;
     };

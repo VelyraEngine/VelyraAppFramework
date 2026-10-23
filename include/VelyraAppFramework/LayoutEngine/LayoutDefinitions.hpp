@@ -1,21 +1,20 @@
 #pragma once
 
+#include <VelyraAppFramework/AppInclude.hpp>
 #include <functional>
 
 #define DONT_CARE (-1.0f)
 
-namespace Velyra::Core {
-
-    class Window;
-    class Context;
-
-}
-
 namespace Velyra::App {
 
-    using NodeID = Size;
+    /**
+     * @brief Stable identifier of a node in the layout tree. It is derived from the path of names (or sibling indices
+     *        for unnamed splits) from the root to the node, so the same node in a layout tree that is rebuilt every
+     *        frame keeps the same NodeID.
+     */
+    using NodeID = U64;
 
-    using DrawFunction = std::function<void(Core::Window&, Core::Context&)>;
+    using DrawFunction = std::function<void()>;
 
     typedef enum ResizeDirection: int {
         None = 0,

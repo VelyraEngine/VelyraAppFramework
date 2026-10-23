@@ -1,7 +1,7 @@
 #include <Pch.hpp>
 
-#include <VelyraAppFramework/Widgets/Terminal.hpp>
 #include <VelyraAppFramework/Styles.hpp>
+#include <VelyraAppFramework/Widgets/Terminal.hpp>
 
 namespace Velyra::App::Widgets {
 

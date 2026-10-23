@@ -1,98 +1,43 @@
 #pragma once
 
+#include <VelyraCore/ImGui/ImGui.hpp>
 #include <VelyraAppFramework/LayoutEngine/LayoutDefinitions.hpp>
 #include <VelyraAppFramework/LayoutEngine/LayoutDescription.hpp>
 
+#include <limits>
+
 namespace Velyra::App {
 
-    class LayoutNode {
-    public:
-        explicit LayoutNode(NodeID nodeID, LayoutNode* parent);
+    constexpr Size NO_PARENT = std::numeric_limits<Size>::max();
 
-        virtual ~LayoutNode() = default;
+    inline NodeID hashName(const std::string_view name) {
+        return std::hash<std::string_view>{}(name);
+    }
 
-        void addChild(UP<LayoutNode> child) {
-            m_Children.push_back(std::move(child));
-        }
+    /**
+     * @brief A node of the layout tree after calculation. Everything needed after the calculation is copied from the
+     *        description, since the description tree is owned by the caller and usually only lives for one frame.
+     */
+    struct LayoutNode {
+        NodeID id = 0;
+        NodeType type = NodeType::Panel;
+        NodeID nameHash = 0; // 0 if the node has no name
+        float descRatio = DONT_CARE; // The ratio as given in the description
 
-        const std::vector<UP<LayoutNode>>& getChildren() const { return m_Children; }
+        // Only valid during calculate() and draw()!
+        const Node* desc = nullptr;
 
-        /**
-         * @brief The user may specify the ratio of some panels as DONT_CARE. Figure out the ratio for those panels
-         *        based on the remaining ratio after accounting for the panels with known ratio. This should be called
-         *        after creating the layout tree and before calculating the layout for the first time.
-         */
-        void calculateUnknownRatio();
+        Size parent = NO_PARENT;
+        Size firstChild = 0;
+        Size childCount = 0;
 
-        virtual void draw(Core::Window& window, Core::Context& context) {
-            for (const auto& child : m_Children) {
-                child->draw(window, context);
-            }
-        }
-
-        /**
-         * @brief Converts the ratio-based position and size of this layout node to pixel-based position and size based
-         *        on the given position and size of the entire layout box. This should be called every time the window
-         *        is resized or when the layout is first calculated.
-         * @param pixelPosition The position in pixels that this node should use as the top-left corner of its layout box.
-         * @param pixelSize The size in pixels that this node should use as the size of its layout box.
-         */
-        virtual void ratioToPixel(const ImVec2& pixelPosition, const ImVec2& pixelSize);
-
-        virtual void localUpdate(NodeID /*childID*/, const ImVec2& /*pixelDeltaSize*/, ResizeDirection /*direction*/) {}
-
-    public:
-        const NodeID m_NodeID;
-
-        float ratio = DONT_CARE;
+        float ratio = DONT_CARE; // Resolved ratio compared to its siblings, all siblings sum up to 1
         ImVec2 position = ImVec2(0.0f, 0.0f);
         ImVec2 size = ImVec2(0.0f, 0.0f);
 
-    protected:
-        LayoutNode* m_Parent = nullptr;
-        std::vector<UP<LayoutNode>> m_Children;
-    };
+        const Panel& getPanel() const { return static_cast<const PanelNode*>(desc)->desc; }
 
-    class PanelImpl: public LayoutNode {
-    public:
-        PanelImpl(NodeID nodeID, LayoutNode* parent, const Panel& desc);
-
-        ~PanelImpl() override = default;
-
-        void draw(Core::Window &window, Core::Context &context) override;
-
-        const std::string& getName() const { return m_Panel.name; }
-
-    public:
-        Panel m_Panel;
-
-    private:
-        void beginPanel() const;
-
-        void endPanel() const;
-
-    };
-
-    class VerticalSplit: public LayoutNode {
-    public:
-        VerticalSplit(NodeID nodeID, LayoutNode* parent);
-
-        ~VerticalSplit() override = default;
-
-        void ratioToPixel(const ImVec2& position, const ImVec2& size) override;
-
-        void localUpdate(NodeID childID, const ImVec2& pixelDeltaSize, ResizeDirection direction) override;
-    };
-
-    class HorizontalSplit: public LayoutNode {
-    public:
-        HorizontalSplit(NodeID nodeID, LayoutNode* parent);
-
-        ~HorizontalSplit() override = default;
-
-        void ratioToPixel(const ImVec2& position, const ImVec2& size) override;
-
-        void localUpdate(NodeID childID, const ImVec2& pixelDeltaSize, ResizeDirection direction) override;
+        const Split& getSplit() const { return *static_cast<const Split*>(desc); }
     };
 
 }

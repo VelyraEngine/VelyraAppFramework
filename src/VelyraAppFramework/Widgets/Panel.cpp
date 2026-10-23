@@ -1,26 +1,21 @@
 #include <Pch.hpp>
 
 #include <VelyraAppFramework/AppData.hpp>
-#include <VelyraAppFramework/Widgets/Panel.hpp>
 #include <VelyraAppFramework/Styles.hpp>
+#include <VelyraAppFramework/Widgets/Panel.hpp>
 
 namespace Velyra::App::Widgets {
 
-    PanelID generatePanelID() {
-        static PanelID currentID = 1; // Start from 1 to avoid using 0 as a valid ID (0 can be used to indicate "no panel")
-        return currentID++;
-    }
-
-    Panel::Panel(AppData& appData, const std::string& name):
+    Panel::Panel(AppData& appData, const std::string& name, const PanelID panelID):
     IPanel(appData, name),
-    m_PanelID(generatePanelID()) {
+    m_PanelID(panelID) {
         m_ImGuiLabel = name + "###Panel" + std::to_string(m_PanelID);
     }
 
-    bool Panel::draw(Core::Window& window, Core::Context& context) {
+    bool Panel::draw() {
         ImGui::SetNextWindowSize(Styles::DefaultWindowSize, ImGuiCond_Once);
         ImGui::Begin(m_ImGuiLabel.c_str(), &m_Open);
-        drawContent(window, context);
+        drawContent();
         ImGui::End();
 
         return m_Open;

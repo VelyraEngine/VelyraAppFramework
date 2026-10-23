@@ -1,11 +1,6 @@
 #pragma once
 
-#include <VelyraUtils/Types/Types.hpp>
-
-namespace Velyra::Core {
-    class Window;
-    class Context;
-}
+#include <VelyraAppFramework/AppInclude.hpp>
 
 namespace Velyra::App {
     class AppData;
@@ -21,7 +16,7 @@ namespace Velyra::App::Widgets {
 
     protected:
 
-        virtual void drawContent(Core::Window& window, Core::Context& context) = 0;
+        virtual void drawContent() = 0;
 
     protected:
         AppData& m_AppData;

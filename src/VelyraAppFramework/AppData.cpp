@@ -1,30 +1,85 @@
 #include <Pch.hpp>
+#include <LoggerNames.hpp>
 
 #include <VelyraAppFramework/AppData.hpp>
-#include "../../include/VelyraAppFramework/LayoutEngine/LayoutEngine.hpp"
+#include <VelyraAppFramework/Layout.hpp>
+#include <VelyraAppFramework/Widgets/Panel.hpp>
+#include <VelyraAppFramework/Widgets/Popup.hpp>
 
 namespace Velyra::App {
 
-    AppData::AppData(const ProgramArgs& args, const SettingsDesc& settingsDesc, LayoutEngine& layoutEngine) :
-    programArgs(args),
-    settings(settingsDesc),
-    m_LayoutEngine(layoutEngine){
+    AppData::AppData(const ProgramArgs& args, Core::Window& window, Core::Context& context, Settings& settings) :
+    m_Logger(Utils::getLogger(VL_APP_APP_DATA_LOGGER)),
+    m_ProgramArgs(args),
+    m_Window(window),
+    m_Context(context),
+    m_Settings(settings) {
+
     }
 
-    void AppData::registerLayout(Layout& layout) const {
-        m_LayoutEngine.registerLayout(layout);
+    AppData::~AppData() = default;
+
+    const ProgramArgs& AppData::getProgramArgs() const {
+        return m_ProgramArgs;
     }
 
-    void AppData::setActiveLayout(const LayoutID layoutID) const {
-        m_LayoutEngine.setActiveLayout(layoutID);
+    Core::Window& AppData::getWindow() const {
+        return m_Window;
+    }
+
+    Core::Context& AppData::getContext() const {
+        return m_Context;
+    }
+
+    Settings& AppData::getSettings() const {
+        return m_Settings;
+    }
+
+    void AppData::registerLayout(const SP<Layout>& layout) {
+        const LayoutID layoutID = layout->getID();
+        if (m_Layouts.contains(layoutID)) {
+            SPDLOG_LOGGER_ERROR(m_Logger, "Layout with ID {} already registered. Overwriting!", layoutID);
+        }
+        m_Layouts[layoutID] = layout;
+        if (m_ActiveLayout == NO_LAYOUT) {
+            m_ActiveLayout = layoutID;
+        }
+    }
+
+    void AppData::unregisterLayout(const LayoutID layoutID) {
+        if (m_Layouts.erase(layoutID) == 0) {
+            SPDLOG_LOGGER_ERROR(m_Logger, "Layout with ID {} not found!", layoutID);
+            return;
+        }
+        if (m_ActiveLayout == layoutID) {
+            m_ActiveLayout = NO_LAYOUT;
+        }
+    }
+
+    void AppData::setActiveLayout(const LayoutID layoutID) {
+        if (layoutID != NO_LAYOUT && !m_Layouts.contains(layoutID)) {
+            SPDLOG_LOGGER_ERROR(m_Logger, "Layout with ID {} not found. Register a layout for this ID first!", layoutID);
+            return;
+        }
+        m_ActiveLayout = layoutID;
     }
 
     LayoutID AppData::getActiveLayout() const {
-        return m_LayoutEngine.getActiveLayout();
+        return m_ActiveLayout;
+    }
+
+    SP<Layout> AppData::getLayout(const LayoutID layoutID) const {
+        const auto it = m_Layouts.find(layoutID);
+        return it != m_Layouts.end() ? it->second : nullptr;
     }
 
     void AppData::addPopup(const SP<Widgets::Popup> &popup) {
+        if (m_Popups.find(popup->getID()) != m_Popups.end()) {
+            SPDLOG_LOGGER_ERROR(m_Logger, "Popup with ID {} already exists!", popup->getID());
+            return;
+        }
         m_Popups[popup->getID()] = popup;
+        SPDLOG_LOGGER_INFO(m_Logger, "Added popup with ID {}", popup->getID());
     }
 
     void AppData::openPopup(const Widgets::PopupID popupID) {
@@ -39,19 +94,61 @@ namespace Velyra::App {
         if (it != m_Popups.end()) {
             it->second->setOpen(false);
         }
-    }
-
-    void AppData::drawPopups(Core::Window &window, Core::Context &context) {
-        for (const auto &popup: m_Popups | std::views::values) {
-            popup->draw(window, context);
+        else {
+            SPDLOG_LOGGER_ERROR(m_Logger, "Popup with ID {} not found!", popupID);
         }
     }
 
-    void AppData::drawPanels(Core::Window &window, Core::Context &context) {
+    SP<Widgets::Popup> AppData::getPopup(const Widgets::PopupID popupID) const {
+        auto it = m_Popups.find(popupID);
+        if (it != m_Popups.end()) {
+            return it->second;
+        }
+        SPDLOG_LOGGER_ERROR(m_Logger, "Popup with ID {} not found!", popupID);
+        return nullptr;
+    }
+
+    void AppData::addPanel(const SP<Widgets::Panel> &panel) {
+        if (m_Panels.find(panel->getID()) != m_Panels.end()) {
+            SPDLOG_LOGGER_ERROR(m_Logger, "Panel with ID {} already exists!", panel->getID());
+            return;
+        }
+        m_Panels[panel->getID()] = panel;
+        SPDLOG_LOGGER_INFO(m_Logger, "Added panel with ID {}", panel->getID());
+    }
+
+    void AppData::removePanel(const Widgets::PanelID panelID) {
+        auto it = m_Panels.find(panelID);
+        if (it != m_Panels.end()) {
+            m_Panels.erase(it);
+            SPDLOG_LOGGER_INFO(m_Logger, "Removed panel with ID {}", panelID);
+        }
+        else {
+            SPDLOG_LOGGER_ERROR(m_Logger, "Panel with ID {} not found!", panelID);
+        }
+    }
+
+    SP<Widgets::Panel> AppData::getPanel(Widgets::PanelID panelID) const {
+        auto it = m_Panels.find(panelID);
+        if (it != m_Panels.end()) {
+            return it->second;
+        }
+        SPDLOG_LOGGER_ERROR(m_Logger, "Panel with ID {} not found!", panelID);
+        return nullptr;
+    }
+
+    void AppData::drawPopups() {
+        for (const auto &popup: m_Popups | std::views::values) {
+            popup->draw();
+        }
+    }
+
+    void AppData::drawPanels() {
         Widgets::PanelID toRemove = 0;
-        for (const auto &panel: m_Panels | std::views::values) {
-            if (!panel->draw(window, context)) {
-                toRemove = panel->getPanelID();
+        for (const auto &[panelID, panel]: m_Panels) {
+            const bool panelStillOpen = panel->draw();
+            if (!panelStillOpen) {
+                toRemove = panelID;
             }
         }
         if (toRemove != 0) {

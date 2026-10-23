@@ -29,7 +29,7 @@ TEST_F(TestLayoutDescription, CreatePanel) {
 TEST_F(TestLayoutDescription, Layout1) {
     auto layout = createLayout(
         horizontalSplit(
-            verticalSplit(
+            verticalSplit({.name = "Left", .sizeRatio = 0.4f},
                 createPanel({.name = "A", .sizeRatio = 0.2f}),
                 createPanel({.name = "B", .sizeRatio = 0.4f}),
                 createPanel({.name = "C", .sizeRatio = 0.4f})
@@ -49,6 +49,8 @@ TEST_F(TestLayoutDescription, Layout1) {
     auto firstChild = dynamic_cast<Split*>(layoutNode->children[0].get());
     ASSERT_EQ(firstChild->type, NodeType::VerticalSplit);
     ASSERT_EQ(firstChild->children.size(), 3);
+    ASSERT_EQ(firstChild->desc.name, "Left");
+    ASSERT_FLOAT_EQ(firstChild->desc.sizeRatio, 0.4f);
     auto panelA = dynamic_cast<PanelNode*>(firstChild->children[0].get());
     ASSERT_EQ(panelA->type, NodeType::Panel);
     ASSERT_EQ(panelA->desc.name, "A");
@@ -70,6 +72,8 @@ TEST_F(TestLayoutDescription, Layout1) {
     auto secondChild = dynamic_cast<Split*>(layoutNode->children[2].get());
     ASSERT_EQ(secondChild->type, NodeType::VerticalSplit);
     ASSERT_EQ(secondChild->children.size(), 2);
+    ASSERT_TRUE(secondChild->desc.name.empty());
+    ASSERT_FLOAT_EQ(secondChild->desc.sizeRatio, DONT_CARE);
     auto panelE = dynamic_cast<PanelNode*>(secondChild->children[0].get());
     ASSERT_EQ(panelE->type, NodeType::Panel);
     ASSERT_EQ(panelE->desc.name, "E");

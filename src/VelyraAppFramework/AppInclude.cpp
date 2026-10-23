@@ -45,5 +45,26 @@ namespace Velyra::App {
 
 #endif
 
+    static UID generateID() {
+        /*
+         * We start from a high number to avoid conflicts with user defined conflicts. Sometimes user may define an
+         * enum with values starting from 0, and we want to avoid any potential conflicts with those values.
+         * Generating IDs like this avoids having to use Utils::Random
+         */
+        static UID currentID = 100000;
+        return currentID++;
+    }
 
-}
+    Widgets::PanelID generatePanelID() {
+        return generateID();
+    }
+
+    Widgets::PopupID generatePopupID() {
+       return generateID();
+    }
+
+    LayoutID generateLayoutID() {
+        return generateID();
+    }
+
+} // namespace Velyra::App

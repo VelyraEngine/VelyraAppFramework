@@ -1,60 +1,48 @@
 #pragma once
 
 #include <VelyraAppFramework/AppInclude.hpp>
-#include <nlohmann/json_fwd.hpp>
+#include <nlohmann/json.hpp>
 #include <VelyraUtils/Conversions/Json.hpp>
-#include <VelyraUtils/DevUtils/JsonSerializer.hpp>
-#include <VelyraCore/Context/Definitions.hpp>
+#include <VelyraUtils/Logging/LoggingFwd.hpp>
 
-#include <optional>
 
 namespace Velyra::App {
 
-    struct VL_API WindowSettings {
-        U32 width = 1280;
-        U32 height = 720;
+    class GitSync;
 
-        VL_GENERATE_JSON_SERIALIZER_RELAXED(WindowSettings, width, height)
-    };
-
-    struct VL_API ContextSettings {
-        VL_GRAPHICS_API graphicsAPI = VL_API_OPENGL;
-        bool enableVSync = true;
-        bool useDocking = false;
-        bool useViewports = false;
-
-        VL_GENERATE_JSON_SERIALIZER_RELAXED(ContextSettings, graphicsAPI, enableVSync, useDocking, useViewports)
-    };
-
-    struct VL_API GitInfo {
-        bool saveToGit = false; // If true, the settings will also be saved to a git repository
-        fs::path gitRepoPath; // The path to the git repository where settings will be saved if saveToGit is true
-        std::string sshString; // The SSH string to use for pushing to the git repository, e.g. "git@github:Coolrepo/settings.git"
-
-        VL_GENERATE_JSON_SERIALIZER_RELAXED(GitInfo, saveToGit, gitRepoPath, sshString)
-    };
-
-    struct LocalSettings {
-        TimePoint lastUpdated = getTime();
-
-        VL_GENERATE_JSON_SERIALIZER_RELAXED(LocalSettings, lastUpdated)
+    struct VL_API GitSyncDesc {
+        std::string remoteUrl; // E.g. "git@github.com:Coolrepo/settings.git". If empty, settings are not synced with git
+        fs::path repoPath; // Where the local clone is stored, defaults to a "SettingsRepo" folder next to the settings file. Do not share it between applications.
+        std::string branch = "main";
+        std::vector<std::string> localKeys = {"WindowSettings", "ContextSettings"}; // Settings that are specific to this PC and never synced
     };
 
     struct VL_API SettingsDesc {
         bool enableSave = true; // If true, settings will be saved to disk on destruction of the Settings object. The file path is determined by settingsFilePath. If false, settings will not be saved to disk.
-        fs::path settingsFilePath;
-        std::string_view applicationName;
+        fs::path settingsFile;
+        GitSyncDesc gitSync{};
     };
 
+    /**
+     * @brief Key value store for settings, saved as json. Optionally synced with a git repository, in which case git
+     *        is the source of truth: the local file follows git, but changes made while git was not reachable are
+     *        merged and pushed on the next sync.
+     */
     class VL_API Settings {
     public:
-        Settings();
-
-        explicit Settings(const SettingsDesc& desc);
+        explicit Settings(SettingsDesc desc);
 
         ~Settings();
 
-        void save() const;
+        void load();
+
+        void save();
+
+        /**
+         * @brief Merges the settings with the git repository and pushes local changes. Called by load() and save().
+         * @return false if git sync is disabled or the remote could not be reached
+         */
+        bool sync();
 
         template<typename T>
         T getSetting(const std::string& key) const {
@@ -70,33 +58,25 @@ namespace Velyra::App {
             m_AppSettings[key] = Utils::toJson(value);
         }
 
-    public:
-        bool enableSave = false;
+        void setSaveEnabled(const bool enabled) { m_Desc.enableSave = enabled; }
 
-        WindowSettings windowSettings;
-        ContextSettings contextSettings;
-        /*
-         * Mutable since we do not want to bother the user with manually updating the last updated time every time they
-         * change a setting, we can just update it automatically when saving the settings
-         */
-        mutable LocalSettings localSettings;
-        GitInfo gitInfo;
+        void setSettingsFilePath(const fs::path& path);
+
+        void setGitSync(const GitSyncDesc& gitSync);
 
     private:
+        void loadSettings();
 
-        void tryLoadFromGit();
+        void saveSettings() const;
 
-        void loadSettings(const fs::path& filePath);
-
-        void saveSettings(const fs::path& filePath) const;
-
-        void trySaveToGit() const;
+        fs::path getSyncStatePath() const;
 
     private:
-        nlohmann::json m_AppSettings = nlohmann::json::object();
         Utils::LogPtr m_Logger;
-        fs::path m_SettingsFilePath;
-        std::string_view m_ApplicationName;
+
+        SettingsDesc m_Desc;
+        nlohmann::json m_AppSettings = nlohmann::json::object();
+        UP<GitSync> m_GitSync;
     };
 
 }
