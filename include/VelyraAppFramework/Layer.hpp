@@ -1,5 +1,6 @@
 #pragma once
 
+#include <VelyraAppFramework/AppInclude.hpp>
 #include <VelyraUtils/Clock/Clock.hpp>
 
 namespace Velyra::App {

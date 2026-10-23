@@ -325,3 +325,18 @@ TEST_F(TestLayoutEngine, ResizeClampedToMinimumRatio) {
 
     expectRect(engine, "A", 0.0f, 0.0f, 500.0f, 1000.0f);
 }
+
+TEST_F(TestLayoutEngine, DuplicatePanelNamesReportedOnce) {
+    const auto layout = horizontalSplit(
+        createPanel({.name = "A"}),
+        verticalSplit(
+            createPanel({.name = "A"}),
+            createPanel({.name = "B"})
+        )
+    );
+    engine.calculate(*layout, 0.0f, 0.0f, 1000.0f, 1000.0f);
+    engine.calculate(*layout, 0.0f, 0.0f, 1000.0f, 1000.0f);
+
+    ASSERT_EQ(engine.get_m_ReportedDuplicates().size(), 1);
+    EXPECT_TRUE(engine.get_m_ReportedDuplicates().contains(hashName("A")));
+}

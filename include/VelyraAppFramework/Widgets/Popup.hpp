@@ -12,6 +12,9 @@ namespace Velyra::App::Widgets {
 
         void draw();
 
+        /**
+         * @brief Opens or closes the popup, onOpen() and onClose() are only called if the state changes.
+         */
         void setOpen(bool open);
 
         /**
@@ -56,6 +59,7 @@ namespace Velyra::App::Widgets {
 
     private:
         const PopupID m_PopupID;
+        const std::string m_ImGuiLabel; // Unique ImGui ID, so popups with the same name do not clash
         bool m_Open = false;
     };
 

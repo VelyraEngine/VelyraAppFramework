@@ -1,6 +1,7 @@
 #pragma once
 
 #include <VelyraAppFramework/AppInclude.hpp>
+#include <VelyraCore/ImGui/ImGui.hpp>
 
 namespace Velyra::App::Styles {
 

@@ -4,7 +4,9 @@
 #include <deque>
 #include <vector>
 #include <mutex>
+#include <VelyraCore/ImGui/ImGui.hpp>
 #include <VelyraUtils/Clock/Clock.hpp>
+#include <VelyraUtils/DevUtils/PrivateMemberGetter.hpp>
 
 namespace Velyra::App::Widgets {
 
@@ -36,6 +38,8 @@ namespace Velyra::App::Widgets {
         mutable std::mutex m_BufferMutex;
 
         bool m_AutoScroll = true;
+
+        VL_GET_PRIVATE_MEMBER(Terminal, m_Lines)
     };
 
 }

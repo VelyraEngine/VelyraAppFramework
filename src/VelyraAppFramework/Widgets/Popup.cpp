@@ -1,4 +1,4 @@
-#include <../Shared/Pch.hpp>
+#include <Pch.hpp>
 
 #include <VelyraAppFramework/Styles.hpp>
 #include <VelyraAppFramework/Widgets/Popup.hpp>
@@ -7,7 +7,8 @@ namespace Velyra::App::Widgets {
 
     Popup::Popup(AppData& appData, const std::string &name, const PopupID popupID):
     IPanel(appData, name),
-    m_PopupID(popupID){
+    m_PopupID(popupID),
+    m_ImGuiLabel(name + "###Popup" + std::to_string(popupID)){
 
     }
 
@@ -15,9 +16,9 @@ namespace Velyra::App::Widgets {
         if (!m_Open) {
             return;
         }
-        ImGui::OpenPopup(m_Name.c_str());
+        ImGui::OpenPopup(m_ImGuiLabel.c_str());
         bool isOpen = true;
-        if (ImGui::BeginPopupModal(m_Name.c_str(), &isOpen)) {
+        if (ImGui::BeginPopupModal(m_ImGuiLabel.c_str(), &isOpen)) {
             drawContent();
             ImGui::EndPopup();
         }
@@ -28,6 +29,9 @@ namespace Velyra::App::Widgets {
     }
 
     void Popup::setOpen(const bool open) {
+        if (open == m_Open) {
+            return;
+        }
         m_Open = open;
         if (open) {
             onOpen();

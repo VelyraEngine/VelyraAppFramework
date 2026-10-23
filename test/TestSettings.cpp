@@ -9,6 +9,34 @@
 using namespace Velyra;
 using namespace Velyra::App;
 
+namespace {
+
+    void setEnvironmentIfUnset(const char* name, const char* value) {
+        if (std::getenv(name) != nullptr) {
+            return;
+        }
+#if defined(_WIN32)
+        _putenv_s(name, value);
+#else
+        setenv(name, value, 0);
+#endif
+    }
+
+    /**
+     * @brief Runs a command and returns its standard output, std::nullopt if the command failed
+     */
+    std::optional<std::string> runCommand(const std::string& command, const fs::path& outputFile) {
+        if (std::system((command + " > \"" + outputFile.string() + "\"").c_str()) != 0) {
+            return std::nullopt;
+        }
+        std::ifstream file(outputFile);
+        std::string output;
+        std::getline(file, output);
+        return output;
+    }
+
+}
+
 struct CustomSettings {
     std::string name;
     int value = 0;
@@ -84,15 +112,15 @@ TEST_F(TestSettings, CorruptFileStartsWithDefaults) {
 class TestSettingsGitSync: public TestSettings {
 protected:
     void SetUp() override {
-        if (std::system("git --version > /dev/null 2>&1") != 0) {
+        TestSettings::SetUp();
+        if (!runCommand("git --version", m_TestDir / "git_version.txt").has_value()) {
             GTEST_SKIP() << "git is not installed";
         }
-        TestSettings::SetUp();
         // Commits need an identity, do not depend on the git config of the machine running the tests
-        setenv("GIT_AUTHOR_NAME", "Velyra Test", 0);
-        setenv("GIT_AUTHOR_EMAIL", "test@velyra.test", 0);
-        setenv("GIT_COMMITTER_NAME", "Velyra Test", 0);
-        setenv("GIT_COMMITTER_EMAIL", "test@velyra.test", 0);
+        setEnvironmentIfUnset("GIT_AUTHOR_NAME", "Velyra Test");
+        setEnvironmentIfUnset("GIT_AUTHOR_EMAIL", "test@velyra.test");
+        setEnvironmentIfUnset("GIT_COMMITTER_NAME", "Velyra Test");
+        setEnvironmentIfUnset("GIT_COMMITTER_EMAIL", "test@velyra.test");
 
         m_RemotePath = m_TestDir / "remote.git";
         ASSERT_EQ(std::system(("git init -q --bare \"" + m_RemotePath.string() + "\"").c_str()), 0);
@@ -213,6 +241,31 @@ TEST_F(TestSettingsGitSync, NoCommitWhenNothingChanged) {
     { Settings laptop(pcDesc("Laptop")); }
     { Settings laptop(pcDesc("Laptop")); }
 
-    const std::string countCommand = "test \"$(git --git-dir=\"" + m_RemotePath.string() + "\" rev-list --count main)\" = 1";
-    EXPECT_EQ(std::system(countCommand.c_str()), 0);
+    const auto commitCount = runCommand("git --git-dir=\"" + m_RemotePath.string() + "\" rev-list --count main", m_TestDir / "count.txt");
+    ASSERT_TRUE(commitCount.has_value());
+    EXPECT_EQ(*commitCount, "1");
+}
+
+struct SettingsV1 {
+    int a = 0;
+
+    VL_GENERATE_JSON_SERIALIZER(SettingsV1, a)
+};
+
+struct SettingsV2 {
+    int a = 0;
+    int b = 0; // Added after SettingsV1 was saved
+
+    VL_GENERATE_JSON_SERIALIZER(SettingsV2, a, b)
+};
+
+TEST_F(TestSettings, InvalidSettingReturnsDefault) {
+    Settings settings({.enableSave = false, .settingsFile = m_TestDir / "settings.json"});
+    settings.setSetting("versioned", SettingsV1{1});
+    settings.setSetting("number", 5);
+
+    // A struct that gained a field, and a setting that changed type, must not throw
+    EXPECT_EQ(settings.getSetting<SettingsV2>("versioned").a, 0);
+    EXPECT_EQ(settings.getSetting<CustomSettings>("number").value, 0);
+    EXPECT_EQ(settings.getSetting<SettingsV1>("versioned").a, 1);
 }

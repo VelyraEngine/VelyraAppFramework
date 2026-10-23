@@ -1,9 +1,13 @@
 #pragma once
 
 #include <VelyraAppFramework/AppInclude.hpp>
+#include <VelyraUtils/Logging/LoggingFwd.hpp>
+
+#include <unordered_map>
 
 namespace Velyra::App {
 
+    class Application;
     class Settings;
     class Layout;
 
@@ -27,8 +31,9 @@ namespace Velyra::App {
         Settings& getSettings() const;
 
         /**
-         * @brief Registers a layout, so it can be made active with setActiveLayout(). The layout is not owned, it must
-         *        stay alive until it is unregistered. The first registered layout becomes the active layout.
+         * @brief Registers a layout, so it can be made active with setActiveLayout(). AppData shares ownership of the
+         *        layout until it is unregistered or the app layer is replaced. The first registered layout becomes the
+         *        active layout.
          */
         void registerLayout(const SP<Layout>& layout);
 
@@ -68,9 +73,25 @@ namespace Velyra::App {
             return m_Popups;
         }
 
+        /**
+         * @brief Draws all popups. Popups may add or remove popups while being drawn, new popups are drawn from the
+         *        next frame on.
+         */
         void drawPopups();
 
+        /**
+         * @brief Draws all panels and removes the ones that were closed. Panels may add or remove panels while being
+         *        drawn, new panels are drawn from the next frame on.
+         */
         void drawPanels();
+
+    private:
+        friend Application;
+
+        /**
+         * @brief Removes all layouts, panels and popups, called when the app layer that registered them is detached.
+         */
+        void clear();
 
     private:
         Utils::LogPtr m_Logger;

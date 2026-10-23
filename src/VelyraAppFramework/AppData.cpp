@@ -138,21 +138,35 @@ namespace Velyra::App {
     }
 
     void AppData::drawPopups() {
-        for (const auto &popup: m_Popups | std::views::values) {
-            popup->draw();
+        // Iterate over a copy, drawing a popup can add or remove popups, which invalidates iterators of m_Popups
+        const std::vector<SP<Widgets::Popup>> popups(std::views::values(m_Popups).begin(), std::views::values(m_Popups).end());
+        for (const auto& popup: popups) {
+            // Skip popups that were removed by a popup drawn before
+            if (m_Popups.contains(popup->getID())) {
+                popup->draw();
+            }
         }
     }
 
     void AppData::drawPanels() {
-        Widgets::PanelID toRemove = 0;
-        for (const auto &[panelID, panel]: m_Panels) {
+        // Iterate over a copy, drawing a panel can add or remove panels, which invalidates iterators of m_Panels
+        const std::vector<SP<Widgets::Panel>> panels(std::views::values(m_Panels).begin(), std::views::values(m_Panels).end());
+        for (const auto& panel: panels) {
+            // Skip panels that were removed by a panel drawn before
+            if (!m_Panels.contains(panel->getID())) {
+                continue;
+            }
             const bool panelStillOpen = panel->draw();
             if (!panelStillOpen) {
-                toRemove = panelID;
+                m_Panels.erase(panel->getID());
             }
         }
-        if (toRemove != 0) {
-            m_Panels.erase(toRemove);
-        }
+    }
+
+    void AppData::clear() {
+        m_ActiveLayout = NO_LAYOUT;
+        m_Layouts.clear();
+        m_Panels.clear();
+        m_Popups.clear();
     }
 }

@@ -39,6 +39,10 @@ namespace Velyra::App::Widgets {
         std::istringstream stream(line.content);
         std::string part;
 
+        // getline does not return anything for an empty string, but an empty line should still be shown
+        if (line.content.empty()) {
+            m_Lines.push_back(line);
+        }
         while (std::getline(stream, part, '\n')) {
             TerminalLine splitLine;
             splitLine.color = line.color;
@@ -46,10 +50,9 @@ namespace Velyra::App::Widgets {
             splitLine.content = std::move(part);
 
             m_Lines.push_back(std::move(splitLine));
-
-            if (m_Lines.size() > m_MaxLines) {
-                m_Lines.pop_front();
-            }
+        }
+        while (m_Lines.size() > m_MaxLines) {
+            m_Lines.pop_front();
         }
     }
 
@@ -89,7 +92,7 @@ namespace Velyra::App::Widgets {
             }
             while (clipper.Step()) {
                 for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i) {
-                    const auto& line = m_Lines[i];
+                    const auto& line = m_Lines[static_cast<Size>(i)];
 
                     ImGui::TableNextRow();
 

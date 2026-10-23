@@ -22,19 +22,19 @@ namespace Velyra::App {
 
         ~Application();
 
+        /**
+         * @brief Creates the app layer, replacing the current one. The layouts, panels and popups registered by the
+         *        current layer are removed, since they usually reference the current layer.
+         */
         template<typename T, typename... Args>
         void createAppLayer(Args&&... args) {
-            if (m_AppLayer) {
-                m_AppLayer->onDetach();
-            }
+            detachAppLayer();
             m_AppLayer = createUP<T>(*m_AppData, std::forward<Args>(args)...);
             m_AppLayer->onAttach();
         }
 
         void setAppLayer(UP<Layer> layer) {
-            if (m_AppLayer) {
-                m_AppLayer->onDetach();
-            }
+            detachAppLayer();
             m_AppLayer = std::move(layer);
             m_AppLayer->onAttach();
         }
@@ -46,6 +46,8 @@ namespace Velyra::App {
         void run();
 
     private:
+
+        void detachAppLayer();
 
         void createWindow(const ApplicationDesc& appDesc);
 

@@ -44,13 +44,21 @@ namespace Velyra::App {
          */
         bool sync();
 
+        /**
+         * @return The setting with the given key, the default value of T if the setting does not exist or does not
+         *         match T (e.g. a field was added to T since the setting was saved)
+         */
         template<typename T>
         T getSetting(const std::string& key) const {
             if (m_AppSettings.contains(key)) {
-                return Utils::fromJson<T>(m_AppSettings.at(key));
+                try {
+                    return Utils::fromJson<T>(m_AppSettings.at(key));
+                }
+                catch (const std::exception& e) {
+                    logInvalidSetting(key, e);
+                }
             }
-            static const T default_value{};
-            return default_value;
+            return T{};
         }
 
         template<typename T>
@@ -65,6 +73,8 @@ namespace Velyra::App {
         void setGitSync(const GitSyncDesc& gitSync);
 
     private:
+        void logInvalidSetting(const std::string& key, const std::exception& error) const;
+
         void loadSettings();
 
         void saveSettings() const;

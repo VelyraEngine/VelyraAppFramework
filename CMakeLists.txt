@@ -71,6 +71,8 @@ set(VELYRA_APP_FRAMEWORK_TEST_SRC
     test/TestLayoutEngine.cpp
     test/TestSettings.cpp
     test/TestJsonMerge.cpp
+    test/TestTerminal.cpp
+    test/TestApplication.cpp
 )
 
 
@@ -81,6 +83,20 @@ if (BUILD_TESTING)
     target_precompile_headers(TestVelyraAppFramework PUBLIC test/TestPch.hpp)
     target_link_libraries(TestVelyraAppFramework PUBLIC VelyraAppFramework)
     vl_configure_test_target(TestVelyraAppFramework)
+
+    # Compiles every public header on its own, so headers that depend on what was included before them are caught
+    set(HEADER_CHECK_SRC)
+    foreach (HEADER ${VELYRA_APP_FRAMEWORK_HEADERS})
+        if (HEADER MATCHES "^include/(.*)\\.hpp$")
+            set(HEADER_CHECK_FILE ${CMAKE_CURRENT_BINARY_DIR}/HeaderCheck/${CMAKE_MATCH_1}.cpp)
+            file(GENERATE OUTPUT ${HEADER_CHECK_FILE} CONTENT "#include <${CMAKE_MATCH_1}.hpp>\n")
+            list(APPEND HEADER_CHECK_SRC ${HEADER_CHECK_FILE})
+        endif ()
+    endforeach ()
+    add_library(VelyraAppFrameworkHeaderCheck OBJECT ${HEADER_CHECK_SRC})
+    set_target_properties(VelyraAppFrameworkHeaderCheck PROPERTIES UNITY_BUILD OFF)
+    target_link_libraries(VelyraAppFrameworkHeaderCheck PRIVATE VelyraAppFramework)
+    add_dependencies(TestVelyraAppFramework VelyraAppFrameworkHeaderCheck)
 endif ()
 
 ################# Development #################

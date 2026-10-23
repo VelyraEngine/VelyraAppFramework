@@ -7,6 +7,8 @@
 
 #include <string_view>
 #include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 namespace Velyra::App {
 
@@ -69,6 +71,8 @@ namespace Velyra::App {
 
         void calculateChildren(Size nodeIndex);
 
+        void checkDuplicatePanels();
+
         void distributeRatios(Size firstChild, Size childCount);
 
         void calculateChildRects(Size nodeIndex);
@@ -84,8 +88,13 @@ namespace Velyra::App {
         std::vector<LayoutNode> m_Nodes;
         std::unordered_map<NodeID, NodeState> m_NodeStates;
 
+        // Duplicate panel names are only reported once, not every frame
+        std::vector<NodeID> m_PanelNameHashes;
+        std::unordered_set<NodeID> m_ReportedDuplicates;
+
         VL_GET_PRIVATE_MEMBER(LayoutEngine, m_Nodes)
         VL_GET_PRIVATE_MEMBER(LayoutEngine, m_NodeStates)
+        VL_GET_PRIVATE_MEMBER(LayoutEngine, m_ReportedDuplicates)
     };
 
 }

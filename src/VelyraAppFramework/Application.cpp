@@ -12,7 +12,7 @@ namespace Velyra::App {
     SettingsDesc processSettingsDesc(const ApplicationDesc& appDesc) {
         SettingsDesc settings = appDesc.settings;
 
-        // If the settings file path is empty, use a default path next to the executable
+        // If the settings file path is empty, use a default path in the appdata folder of the application
         if (settings.settingsFile.empty()) {
             const std::string settingsFileName = "settings_" + appDesc.applicationName + ".json";
             const fs::path defaultSettingsPath = getAppdataPath(appDesc.applicationName) / settingsFileName;
@@ -31,9 +31,8 @@ namespace Velyra::App {
     }
 
     Application::~Application() {
-        if (m_AppLayer) {
-            m_AppLayer->onDetach();
-        }
+        // The layer can own resources of the context, so it must be destroyed before the context is
+        detachAppLayer();
         destroyAppData();
         destroyImGuiContext();
         destroyContext();
@@ -81,6 +80,15 @@ namespace Velyra::App {
 
             context->swapBuffers();
         }
+    }
+
+    void Application::detachAppLayer() {
+        if (m_AppLayer == nullptr) {
+            return;
+        }
+        m_AppLayer->onDetach();
+        m_AppLayer.reset();
+        m_AppData->clear();
     }
 
     void Application::createWindow(const ApplicationDesc& appDesc) {

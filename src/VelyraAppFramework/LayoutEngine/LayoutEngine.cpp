@@ -75,6 +75,7 @@ namespace Velyra::App {
         rootNode.size = ImVec2(std::round(width), std::round(height));
 
         calculateChildren(0);
+        checkDuplicatePanels();
     }
 
     void LayoutEngine::resizePanel(const std::string_view panelName, const float deltaWidth, const float deltaHeight, const ResizeDirection direction) {
@@ -132,6 +133,29 @@ namespace Velyra::App {
 
         for (Size i = firstChild; i < firstChild + m_Nodes[nodeIndex].childCount; i++) {
             calculateChildren(i);
+        }
+    }
+
+    void LayoutEngine::checkDuplicatePanels() {
+        m_PanelNameHashes.clear();
+        for (const auto& node : m_Nodes) {
+            if (node.type == NodeType::Panel) {
+                m_PanelNameHashes.push_back(node.nameHash);
+            }
+        }
+        std::sort(m_PanelNameHashes.begin(), m_PanelNameHashes.end());
+        for (Size i = 1; i < m_PanelNameHashes.size(); i++) {
+            const NodeID nameHash = m_PanelNameHashes[i];
+            if (nameHash != m_PanelNameHashes[i - 1] || !m_ReportedDuplicates.insert(nameHash).second) {
+                continue;
+            }
+            // The description is still valid here, look up the name for the error message
+            for (const auto& node : m_Nodes) {
+                if (node.type == NodeType::Panel && node.nameHash == nameHash) {
+                    SPDLOG_LOGGER_ERROR(m_Logger, "Multiple panels are named '{}', panel names must be unique within a layout", node.getPanel().name);
+                    break;
+                }
+            }
         }
     }
 

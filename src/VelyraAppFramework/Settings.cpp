@@ -168,6 +168,10 @@ namespace Velyra::App {
         m_GitSync = createUP<GitSync>(m_Desc.gitSync, m_Desc.settingsFile.filename().string(), m_Logger);
     }
 
+    void Settings::logInvalidSetting(const std::string& key, const std::exception& error) const {
+        SPDLOG_LOGGER_ERROR(m_Logger, "Setting '{}' does not match its type, using the default value instead: {}", key, error.what());
+    }
+
     void Settings::loadSettings() {
         const std::optional<nlohmann::json> settings = readJsonFile(m_Desc.settingsFile);
         if (!settings.has_value()) {
