@@ -39,6 +39,11 @@ namespace Velyra::App {
         destroyWindow();
     }
 
+    AppData& Application::getAppData() const {
+        VL_PRECONDITION(m_AppData != nullptr, "AppData is null");
+        return *m_AppData;
+    }
+
     void Application::run() {
         VL_PRECONDITION(m_Window->getContext() != nullptr, "Context is null")
 

@@ -39,6 +39,8 @@ namespace Velyra::App {
             m_AppLayer->onAttach();
         }
 
+        AppData& getAppData() const;
+
         Layer& getAppLayer() const {
             return *m_AppLayer;
         }
