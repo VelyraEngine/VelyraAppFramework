@@ -1,10 +1,7 @@
 #include "TestPch.hpp"
 
-#include <VelyraAppFramework/Settings.hpp>
+#include <VelyraAppFramework/Settings/Settings.hpp>
 #include <VelyraUtils/DevUtils/JsonSerializer.hpp>
-
-#include <cstdlib>
-#include <fstream>
 
 using namespace Velyra;
 using namespace Velyra::App;
@@ -126,11 +123,32 @@ protected:
         ASSERT_EQ(std::system(("git init -q --bare \"" + m_RemotePath.string() + "\"").c_str()), 0);
     }
 
+    /**
+     * @brief The git sync configuration is read from the local settings file, so a PC that has never run the
+     *        application gets a local file that only contains it, like a user would set it up.
+     */
     SettingsDesc pcDesc(const std::string& pcName) const {
         SettingsDesc desc;
         desc.settingsFile = m_TestDir / pcName / "settings_App.json";
-        desc.gitSync.remoteUrl = m_RemotePath.string();
+        if (!fs::exists(desc.settingsFile)) {
+            fs::create_directories(desc.settingsFile.parent_path());
+            GitSyncDesc gitSync;
+            gitSync.enableGitSync = true;
+            gitSync.remoteUrl = m_RemotePath.string();
+            std::ofstream file(desc.settingsFile);
+            file << nlohmann::json{{SettingsKeys::GIT_SYNC, Utils::toJson(gitSync)}}.dump(4);
+        }
         return desc;
+    }
+
+    std::optional<nlohmann::json> readRemoteSettings() const {
+        const fs::path output = m_TestDir / "remote_settings.json";
+        const std::string command = "git --git-dir=\"" + m_RemotePath.string() + "\" show main:settings_App.json > \"" + output.string() + "\"";
+        if (std::system(command.c_str()) != 0) {
+            return std::nullopt;
+        }
+        std::ifstream file(output);
+        return nlohmann::json::parse(file);
     }
 
     void setOnline(const bool online) const {
@@ -244,6 +262,69 @@ TEST_F(TestSettingsGitSync, NoCommitWhenNothingChanged) {
     const auto commitCount = runCommand("git --git-dir=\"" + m_RemotePath.string() + "\" rev-list --count main", m_TestDir / "count.txt");
     ASSERT_TRUE(commitCount.has_value());
     EXPECT_EQ(*commitCount, "1");
+}
+
+TEST_F(TestSettingsGitSync, GitSyncConfigIsNotSynced) {
+    { Settings laptop(pcDesc("Laptop")); laptop.setSetting("a", 1); }
+
+    const auto remote = readRemoteSettings();
+    ASSERT_TRUE(remote.has_value());
+    EXPECT_EQ(remote->value("a", 0), 1);
+    EXPECT_FALSE(remote->contains(SettingsKeys::GIT_SYNC));
+
+    // The local file still has it
+    Settings laptop(pcDesc("Laptop"));
+    EXPECT_TRUE(laptop.getGitSync().enableGitSync);
+}
+
+TEST_F(TestSettingsGitSync, DisabledFlagUsesLocalFileOnly) {
+    const SettingsDesc desc = pcDesc("Laptop");
+    {
+        // Disable git sync in the local file, while keeping the remote url
+        Settings laptop(desc);
+        GitSyncDesc gitSync = laptop.getGitSync();
+        gitSync.enableGitSync = false;
+        laptop.setGitSync(gitSync);
+        laptop.setSetting("a", 1);
+    }
+    {
+        Settings laptop(desc);
+        EXPECT_EQ(laptop.getSetting<int>("a"), 1);
+        EXPECT_FALSE(laptop.getGitSync().enableGitSync);
+        EXPECT_EQ(laptop.getGitSync().remoteUrl, m_RemotePath.string());
+    }
+    // The first sync on construction already created the repository, but nothing was pushed after disabling
+    const auto remote = readRemoteSettings();
+    EXPECT_TRUE(!remote.has_value() || !remote->contains("a"));
+}
+
+TEST_F(TestSettingsGitSync, EnableGitSyncAtRuntime) {
+    { Settings laptop(pcDesc("Laptop")); laptop.setSetting("a", 1); }
+
+    // The desktop starts without git sync, it is enabled from the application
+    const fs::path desktopFile = m_TestDir / "Desktop" / "settings_App.json";
+    Settings desktop({.enableSave = true, .settingsFile = desktopFile});
+    EXPECT_FALSE(desktop.getGitSync().enableGitSync);
+    EXPECT_EQ(desktop.getSetting<int>("a"), 0);
+
+    GitSyncDesc gitSync;
+    gitSync.enableGitSync = true;
+    gitSync.remoteUrl = m_RemotePath.string();
+    desktop.setGitSync(gitSync);
+    EXPECT_TRUE(desktop.sync());
+    EXPECT_EQ(desktop.getSetting<int>("a"), 1);
+    EXPECT_TRUE(desktop.getGitSync().enableGitSync);
+}
+
+TEST_F(TestSettings, DefaultGitSyncIsWrittenToLocalFile) {
+    const fs::path settingsFile = m_TestDir / "settings.json";
+    { Settings settings({.enableSave = true, .settingsFile = settingsFile}); }
+
+    std::ifstream file(settingsFile);
+    const nlohmann::json json = nlohmann::json::parse(file);
+    ASSERT_TRUE(json.contains(SettingsKeys::GIT_SYNC));
+    EXPECT_FALSE(json.at(SettingsKeys::GIT_SYNC).at("enableGitSync").get<bool>());
+    EXPECT_FALSE(fs::exists(m_TestDir / "SettingsRepo"));
 }
 
 struct SettingsV1 {

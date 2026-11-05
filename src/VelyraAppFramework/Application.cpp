@@ -44,7 +44,7 @@ namespace Velyra::App {
         return *m_AppData;
     }
 
-    void Application::run() {
+    void Application::run() const {
         VL_PRECONDITION(m_Window->getContext() != nullptr, "Context is null")
 
         const UP<Core::Context>& context = m_Window->getContext();
@@ -97,7 +97,7 @@ namespace Velyra::App {
     }
 
     void Application::createWindow(const ApplicationDesc& appDesc) {
-        const auto windowSettings = m_Settings.getSetting<WindowSettings>("WindowSettings");
+        const auto windowSettings = m_Settings.getSetting<WindowSettings>(SettingsKeys::WINDOW_SETTINGS);
 
         Core::WindowDesc windowDesc;
         windowDesc.width = windowSettings.width;
@@ -111,7 +111,7 @@ namespace Velyra::App {
     void Application::createContext() const {
         VL_PRECONDITION(m_Window != nullptr, "Failed to create window");
 
-        const auto contextSettings = m_Settings.getSetting<ContextSettings>("ContextSettings");
+        const auto contextSettings = m_Settings.getSetting<ContextSettings>(SettingsKeys::CONTEXT_SETTINGS);
 
         Core::ContextDesc contextDesc;
         contextDesc.api = contextSettings.graphicsAPI;
@@ -126,7 +126,7 @@ namespace Velyra::App {
 
         const UP<Core::Context>& context = m_Window->getContext();
 
-        const auto imGuiSettings = m_Settings.getSetting<ImGuiSettings>("ImGuiSettings");
+        const auto imGuiSettings = m_Settings.getSetting<ImGuiSettings>(SettingsKeys::IMGUI_SETTINGS);
 
         Core::ImGuiContextDesc imGuiDesc;
         imGuiDesc.useDocking = imGuiSettings.useDocking;
@@ -174,7 +174,7 @@ namespace Velyra::App {
         imGuiSettings.useDocking = ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable;
         imGuiSettings.useViewports = ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable;
         imGuiSettings.saveImGuiWindowData = ImGui::GetIO().IniFilename != nullptr;
-        m_Settings.setSetting<ImGuiSettings>("ImGuiSettings", imGuiSettings);
+        m_Settings.setSetting<ImGuiSettings>(SettingsKeys::IMGUI_SETTINGS, imGuiSettings);
 
         context->DestroyImGuiContext();
     }
@@ -187,7 +187,7 @@ namespace Velyra::App {
         ContextSettings settings;
         settings.enableVSync = context->isVerticalSynchronisationEnabled();
         settings.graphicsAPI = context->getType();
-        m_Settings.setSetting<ContextSettings>("ContextSettings", settings);
+        m_Settings.setSetting<ContextSettings>(SettingsKeys::CONTEXT_SETTINGS, settings);
 
         m_Window->destroyContext();
     }
@@ -197,7 +197,7 @@ namespace Velyra::App {
         windowSettings.width = m_Window->getWidth();
         windowSettings.height = m_Window->getHeight();
 
-        m_Settings.setSetting<WindowSettings>("WindowSettings", windowSettings);
+        m_Settings.setSetting<WindowSettings>(SettingsKeys::WINDOW_SETTINGS, windowSettings);
         m_Window.reset();
     }
 

@@ -1,23 +1,11 @@
 #include <Pch.hpp>
 #include <LoggerNames.hpp>
 
-#include <VelyraAppFramework/Settings.hpp>
-#include "Settings/GitSync.hpp"
-#include "Settings/JsonMerge.hpp"
+#include "GitSync.hpp"
+#include "JsonMerge.hpp"
+#include <VelyraAppFramework/Settings/Settings.hpp>
 
 namespace Velyra::App {
-
-    inline std::optional<nlohmann::json> readJsonFile(const fs::path& path) {
-        std::ifstream file(path);
-        if (!file.is_open()) {
-            return std::nullopt;
-        }
-        nlohmann::json json = nlohmann::json::parse(file, nullptr, false);
-        if (json.is_discarded() || !json.is_object()) {
-            return std::nullopt;
-        }
-        return std::make_optional(std::move(json));
-    }
 
     /**
      * @brief Writes to a temporary file first, so a crash while writing never leaves a half written file behind
@@ -50,7 +38,6 @@ namespace Velyra::App {
     Settings::Settings(SettingsDesc desc):
     m_Logger(Utils::getLogger(VL_APP_SETTINGS_LOGGER)),
     m_Desc(std::move(desc)) {
-        setGitSync(m_Desc.gitSync);
         load();
     }
 
@@ -65,12 +52,18 @@ namespace Velyra::App {
     }
 
     void Settings::load() {
+        // The local file is always read first, it tells whether the settings must be synced with git
         if (fs::is_regular_file(m_Desc.settingsFile)) {
             loadSettings();
         }
         else {
             SPDLOG_LOGGER_WARN(m_Logger, "Settings file '{}' does not exist or is not a regular file, starting with default settings", m_Desc.settingsFile);
         }
+        // Write the default git sync configuration to the file, so it can be found and edited by the user
+        if (!m_AppSettings.contains(SettingsKeys::GIT_SYNC)) {
+            m_AppSettings[SettingsKeys::GIT_SYNC] = Utils::toJson(GitSyncDesc{});
+        }
+        applyGitSync();
         sync();
     }
 
@@ -98,7 +91,7 @@ namespace Velyra::App {
         // Settings that are specific to this PC are left out of the sync
         nlohmann::json local = m_AppSettings;
         nlohmann::json localOnly = nlohmann::json::object();
-        for (const auto& key : m_Desc.gitSync.localKeys) {
+        for (const auto& key : m_GitSyncDesc.localKeys) {
             if (local.contains(key)) {
                 localOnly[key] = local.at(key);
                 local.erase(key);
@@ -107,9 +100,12 @@ namespace Velyra::App {
         }
 
         // The base is the version of the last successful sync, it tells which side changed what
-        const std::optional<nlohmann::json> syncState = readJsonFile(getSyncStatePath());
+        std::optional<nlohmann::json> syncState;
+        if (fs::is_regular_file(getSyncStatePath())) {
+            syncState = Utils::IO::readJson(getSyncStatePath());
+        }
         const nlohmann::json* base = nullptr;
-        if (syncState.has_value() && syncState->value("remoteUrl", "") == m_Desc.gitSync.remoteUrl && syncState->contains("base")) {
+        if (syncState.has_value() && syncState->value("remoteUrl", "") == m_GitSyncDesc.remoteUrl && syncState->contains("base")) {
             base = &syncState->at("base");
         }
 
@@ -139,33 +135,47 @@ namespace Velyra::App {
         if (m_Desc.enableSave) {
             // Save the settings before the base, if we crash in between the local changes are pushed again next time
             saveSettings();
-            if (!writeJsonFile(getSyncStatePath(), {{"remoteUrl", m_Desc.gitSync.remoteUrl}, {"base", newBase}})) {
+            if (!writeJsonFile(getSyncStatePath(), {{"remoteUrl", m_GitSyncDesc.remoteUrl}, {"base", newBase}})) {
                 SPDLOG_LOGGER_ERROR(m_Logger, "Failed to write sync state '{}'", getSyncStatePath());
             }
         }
-        SPDLOG_LOGGER_INFO(m_Logger, "Synced settings with '{}'", m_Desc.gitSync.remoteUrl);
+        SPDLOG_LOGGER_INFO(m_Logger, "Synced settings with '{}'", m_GitSyncDesc.remoteUrl);
         return true;
     }
 
     void Settings::setSettingsFilePath(const fs::path& path) {
         m_Desc.settingsFile = path;
-        setGitSync(m_Desc.gitSync);
+        applyGitSync();
     }
 
     void Settings::setGitSync(const GitSyncDesc& gitSync) {
-        m_Desc.gitSync = gitSync;
+        m_AppSettings[SettingsKeys::GIT_SYNC] = Utils::toJson(gitSync);
+        applyGitSync();
+    }
+
+    void Settings::applyGitSync() {
         m_GitSync.reset();
-        if (gitSync.remoteUrl.empty()) {
+        m_GitSyncDesc = getSetting<GitSyncDesc>(SettingsKeys::GIT_SYNC);
+        if (!m_GitSyncDesc.enableGitSync) {
+            SPDLOG_LOGGER_INFO(m_Logger, "Git sync is disabled, using the local settings file only");
+            return;
+        }
+        if (m_GitSyncDesc.remoteUrl.empty()) {
+            SPDLOG_LOGGER_WARN(m_Logger, "Git sync is enabled but no remote url is set, using the local settings file only");
             return;
         }
         if (m_Desc.settingsFile.empty()) {
             SPDLOG_LOGGER_ERROR(m_Logger, "Cannot sync settings with git without a settings file");
             return;
         }
-        if (m_Desc.gitSync.repoPath.empty()) {
-            m_Desc.gitSync.repoPath = m_Desc.settingsFile.parent_path() / "SettingsRepo";
+        if (m_GitSyncDesc.repoPath.empty()) {
+            m_GitSyncDesc.repoPath = m_Desc.settingsFile.parent_path() / "SettingsRepo";
         }
-        m_GitSync = createUP<GitSync>(m_Desc.gitSync, m_Desc.settingsFile.filename().string(), m_Logger);
+        // The git sync configuration is specific to this PC, syncing it could point other PCs to another repository
+        if (std::ranges::find(m_GitSyncDesc.localKeys, SettingsKeys::GIT_SYNC) == m_GitSyncDesc.localKeys.end()) {
+            m_GitSyncDesc.localKeys.emplace_back(SettingsKeys::GIT_SYNC);
+        }
+        m_GitSync = createUP<GitSync>(m_GitSyncDesc, m_Desc.settingsFile.filename().string(), m_Logger);
     }
 
     void Settings::logInvalidSetting(const std::string& key, const std::exception& error) const {
@@ -173,7 +183,7 @@ namespace Velyra::App {
     }
 
     void Settings::loadSettings() {
-        const std::optional<nlohmann::json> settings = readJsonFile(m_Desc.settingsFile);
+        const std::optional<nlohmann::json> settings = Utils::IO::readJson(m_Desc.settingsFile);
         if (!settings.has_value()) {
             SPDLOG_LOGGER_ERROR(m_Logger, "Failed to read settings file '{}', starting with default settings", m_Desc.settingsFile);
             return;

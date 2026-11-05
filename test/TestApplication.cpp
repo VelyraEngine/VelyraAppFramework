@@ -8,8 +8,6 @@
 #include <VelyraAppFramework/Widgets/Popup.hpp>
 #include <VelyraCore/Window/Window.hpp>
 
-#include <cstdlib>
-
 using namespace Velyra;
 using namespace Velyra::App;
 

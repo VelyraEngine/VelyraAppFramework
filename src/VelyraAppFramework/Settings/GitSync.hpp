@@ -1,6 +1,6 @@
 #pragma once
 
-#include <VelyraAppFramework/Settings.hpp>
+#include <VelyraAppFramework/Settings/SettingsDefinitions.hpp>
 
 namespace Velyra::App {
 

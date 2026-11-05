@@ -1,7 +1,7 @@
 #pragma once
 
+#include <VelyraAppFramework/Settings/Settings.hpp>
 #include <VelyraAppFramework/AppInclude.hpp>
-#include <VelyraAppFramework/Settings.hpp>
 #include <VelyraAppFramework/Layer.hpp>
 #include <VelyraUtils/Logging/LoggingFwd.hpp>
 
@@ -45,7 +45,7 @@ namespace Velyra::App {
             return *m_AppLayer;
         }
 
-        void run();
+        void run() const;
 
     private:
 

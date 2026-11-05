@@ -4,11 +4,11 @@
 #include <VelyraCore/ImGui/ImGui.hpp>
 #include <iostream>
 
+#include <VelyraAppFramework/AppData.hpp>
 #include <VelyraAppFramework/Layer.hpp>
 #include <VelyraAppFramework/Layout.hpp>
-#include <VelyraAppFramework/AppData.hpp>
-#include <VelyraAppFramework/Settings.hpp>
 #include <VelyraUtils/DevUtils/JsonSerializer.hpp>
+#include <include/VelyraAppFramework/Settings/Settings.hpp>
 
 using namespace Velyra;
 
@@ -211,8 +211,7 @@ int main(const int argc, char* argv[]) {
         desc.applicationName = "VelyraAppDemo";
         desc.settings.settingsFile = App::getAppdataPath(desc.applicationName) / "settings_VelyraAppDemo.json";
 
-        // test git sync
-        desc.settings.gitSync.remoteUrl = "git@github-personal:artick788/AppStorage.git";
+        // Git sync is configured in the "GitSync" object of the settings file (enableGitSync, remoteUrl, ...)
 
         App::Application app(desc, args);
         app.createAppLayer<ExampleLayer>();

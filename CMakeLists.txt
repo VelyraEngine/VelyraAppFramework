@@ -16,9 +16,11 @@ set(VELYRA_APP_FRAMEWORK_HEADERS
     include/VelyraAppFramework/Layer.hpp
     include/VelyraAppFramework/Application.hpp
     include/VelyraAppFramework/AppData.hpp
-    include/VelyraAppFramework/Settings.hpp
     include/VelyraAppFramework/Styles.hpp
     include/VelyraAppFramework/Layout.hpp
+
+    include/VelyraAppFramework/Settings/Settings.hpp
+    include/VelyraAppFramework/Settings/SettingsDefinitions.hpp
 
     include/VelyraAppFramework/LayoutEngine/LayoutEngine.hpp
     include/VelyraAppFramework/LayoutEngine/LayoutDefinitions.hpp
@@ -42,7 +44,7 @@ set(VELYRA_APP_FRAMEWORK_SRC
     src/VelyraAppFramework/Layout.cpp
     src/VelyraAppFramework/Application.cpp
     src/VelyraAppFramework/AppData.cpp
-    src/VelyraAppFramework/Settings.cpp
+    src/VelyraAppFramework/Settings/Settings.cpp
     src/VelyraAppFramework/Settings/GitSync.cpp
     src/VelyraAppFramework/Settings/JsonMerge.cpp
     src/VelyraAppFramework/AppInclude.cpp
