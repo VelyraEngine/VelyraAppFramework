@@ -27,10 +27,6 @@ namespace Velyra::App::Themes::Dusk {
     constexpr auto Text       = ImVec4(0.90f, 0.91f, 0.94f, 1.00f);
     constexpr auto CardBg     = ImVec4(0.12f, 0.14f, 0.18f, 1.00f);
 
-    // Table rows
-    constexpr auto YearRowBg  = ImVec4(1.00f, 0.86f, 0.45f, 0.12f); // Highlight for yearly totals
-    constexpr auto TotalRowBg = ImVec4(0.47f, 0.55f, 1.00f, 0.18f); // Totals of the whole table
-
     /**
      * @brief Series colors are meant for plots with several lines or bars that must stay distinguishable. They are
      *        balanced to have a similar brightness on the dark background.
