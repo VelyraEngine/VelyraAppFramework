@@ -27,7 +27,9 @@ set(VELYRA_APP_FRAMEWORK_HEADERS
     include/VelyraAppFramework/LayoutEngine/LayoutDescription.hpp
     src/VelyraAppFramework/LayoutEngine/LayoutNode.hpp
 
+    include/VelyraAppFramework/Themes/Analyst.hpp
     include/VelyraAppFramework/Themes/Dusk.hpp
+    include/VelyraAppFramework/Themes/ThemeUtils.hpp
 
     include/VelyraAppFramework/Widgets/Popup.hpp
     include/VelyraAppFramework/Widgets/RegexInput.hpp
@@ -54,6 +56,7 @@ set(VELYRA_APP_FRAMEWORK_SRC
     src/VelyraAppFramework/LayoutEngine/LayoutEngine.cpp
     src/VelyraAppFramework/LayoutEngine/LayoutDescription.cpp
 
+    src/VelyraAppFramework/Themes/Analyst.cpp
     src/VelyraAppFramework/Themes/Dusk.cpp
 
     src/VelyraAppFramework/Widgets/Popup.cpp

@@ -1,21 +1,25 @@
 #include <VelyraAppFramework/Themes/Dusk.hpp>
+#include <VelyraAppFramework/Themes/ThemeUtils.hpp>
 
 namespace Velyra::App::Themes::Dusk {
 
     namespace {
 
-        constexpr ImVec4 rgb(const int r, const int g, const int b, const float a = 1.0f) {
-            return {static_cast<float>(r) / 255.0f, static_cast<float>(g) / 255.0f, static_cast<float>(b) / 255.0f, a};
-        }
+        constexpr const char* ColormapName = "Dusk";
 
-        /**
-         * @return The color with the alpha replaced
-         */
-        constexpr ImVec4 withAlpha(const ImVec4 color, const float alpha) {
-            return {color.x, color.y, color.z, alpha};
-        }
-
-        constexpr ImVec4 TRANSPARENT = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+        constexpr ImVec4 Palette[] = {
+            rgb(153, 133, 255), // Violet
+            rgb(64, 196, 186),  // Teal
+            rgb(242, 178, 72),  // Amber
+            rgb(240, 110, 170), // Pink
+            rgb(92, 170, 245),  // Sky
+            rgb(160, 210, 90),  // Lime
+            rgb(245, 130, 80),  // Orange
+            rgb(110, 120, 240), // Indigo
+            rgb(200, 150, 230), // Lilac
+            rgb(80, 200, 130),  // Green
+        };
+        constexpr int PaletteSize = sizeof(Palette) / sizeof(Palette[0]);
 
         void applyImGui() {
             ImGuiStyle& style = ImGui::GetStyle();
@@ -59,7 +63,7 @@ namespace Velyra::App::Themes::Dusk {
             colors[ImGuiCol_ChildBg]              = withAlpha(surface, 0.0f);
             colors[ImGuiCol_PopupBg]              = surface;
             colors[ImGuiCol_Border]               = border;
-            colors[ImGuiCol_BorderShadow]         = TRANSPARENT;
+            colors[ImGuiCol_BorderShadow]         = Transparent;
             colors[ImGuiCol_FrameBg]              = raised;
             colors[ImGuiCol_FrameBgHovered]       = rgb(45, 50, 66);
             colors[ImGuiCol_FrameBgActive]        = rgb(53, 59, 77);
@@ -96,7 +100,7 @@ namespace Velyra::App::Themes::Dusk {
             colors[ImGuiCol_TableHeaderBg]        = rgb(28, 32, 42);
             colors[ImGuiCol_TableBorderStrong]    = border;
             colors[ImGuiCol_TableBorderLight]     = rgb(34, 38, 49);
-            colors[ImGuiCol_TableRowBg]           = TRANSPARENT;
+            colors[ImGuiCol_TableRowBg]           = Transparent;
             colors[ImGuiCol_TableRowBgAlt]        = ImVec4(1.0f, 1.0f, 1.0f, 0.022f);
             colors[ImGuiCol_TextSelectedBg]       = withAlpha(Accent, 0.35f);
             colors[ImGuiCol_TextLink]             = Accent;
@@ -119,7 +123,10 @@ namespace Velyra::App::Themes::Dusk {
             plotStyle.PlotPadding    = ImVec2(6.0f * scale, 6.0f * scale);
             plotStyle.LegendPadding  = ImVec2(8.0f * scale, 6.0f * scale);
 
-            plotStyle.Colors[ImPlotCol_FrameBg]      = withAlpha(background, 0.0f);
+            // Colors the series of the plots from the palette of the theme, unless a series sets its own color
+            plotStyle.Colormap = registerColormap(ColormapName, Palette, PaletteSize);
+
+            plotStyle.Colors[ImPlotCol_FrameBg]     = withAlpha(background, 0.0f);
             plotStyle.Colors[ImPlotCol_PlotBg]       = withAlpha(surface, 0.58f);
             plotStyle.Colors[ImPlotCol_PlotBorder]   = withAlpha(border, 0.0f);
             plotStyle.Colors[ImPlotCol_LegendBg]     = withAlpha(surface, 0.85f);
@@ -130,20 +137,7 @@ namespace Velyra::App::Themes::Dusk {
     }
 
     ImVec4 seriesColor(const int index) {
-        static constexpr ImVec4 palette[] = {
-            rgb(153, 133, 255), // Violet
-            rgb(64, 196, 186),  // Teal
-            rgb(242, 178, 72),  // Amber
-            rgb(240, 110, 170), // Pink
-            rgb(92, 170, 245),  // Sky
-            rgb(160, 210, 90),  // Lime
-            rgb(245, 130, 80),  // Orange
-            rgb(110, 120, 240), // Indigo
-            rgb(200, 150, 230), // Lilac
-            rgb(80, 200, 130),  // Green
-        };
-        constexpr int count = sizeof(palette) / sizeof(palette[0]);
-        return palette[((index % count) + count) % count];
+        return Palette[((index % PaletteSize) + PaletteSize) % PaletteSize];
     }
 
     void apply(const Core::Context& context) {
