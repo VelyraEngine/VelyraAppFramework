@@ -118,7 +118,6 @@ namespace Velyra::App::Themes::Dusk {
             plotStyle.Use24HourClock = true;
             plotStyle.PlotPadding    = ImVec2(6.0f * scale, 6.0f * scale);
             plotStyle.LegendPadding  = ImVec2(8.0f * scale, 6.0f * scale);
-            plotStyle.FitPadding     = ImVec2(0.02f, 0.10f);
 
             plotStyle.Colors[ImPlotCol_FrameBg]      = withAlpha(background, 0.0f);
             plotStyle.Colors[ImPlotCol_PlotBg]       = withAlpha(surface, 0.58f);
