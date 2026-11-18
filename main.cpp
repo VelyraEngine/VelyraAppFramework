@@ -8,7 +8,8 @@
 #include <VelyraAppFramework/Layer.hpp>
 #include <VelyraAppFramework/Layout.hpp>
 #include <VelyraUtils/DevUtils/JsonSerializer.hpp>
-#include <include/VelyraAppFramework/Settings/Settings.hpp>
+#include <VelyraAppFramework/Settings/Settings.hpp>
+#include <VelyraAppFramework/Themes/Dusk.hpp>
 
 using namespace Velyra;
 
@@ -166,6 +167,8 @@ public:
         m_AppData.registerLayout(m_Layout1);
         m_AppData.registerLayout(m_Layout2);
         m_AppData.setActiveLayout(m_Layout1->getID());
+
+        App::Themes::Dusk::apply(m_AppData.getContext());
     }
 
     void onDetach() override {
