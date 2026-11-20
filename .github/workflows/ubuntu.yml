@@ -1,0 +1,27 @@
+# Copy to .github/workflows/ubuntu.yml in a Velyra repo, next to workflow-windows.yml. Each platform has its own
+# workflow so each gets its own README badge: GitHub badges show the status of a whole workflow, not of a job.
+# All logic lives in the scripts next to this file, so the workflows of all repos stay identical and CI changes reach
+# a repo when its VelyraBuildUtils submodule is updated.
+name: Ubuntu
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: bash VelyraBuildUtils/ci/install-deps-linux.sh
+
+      - name: Configure
+        run: bash VelyraBuildUtils/ci/configure.sh
+
+      - name: Build
+        run: bash VelyraBuildUtils/ci/build.sh
+
+      - name: Test
+        run: bash VelyraBuildUtils/ci/test.sh
