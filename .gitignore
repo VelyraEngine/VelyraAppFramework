@@ -39,3 +39,6 @@
 
 # debug information files
 *.dwo
+
+# Build folder of VelyraBuildUtils/ci/build-and-test.sh
+build-ci/
