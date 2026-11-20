@@ -19,12 +19,15 @@ namespace Velyra::App {
         VL_GENERATE_JSON_SERIALIZER_RELAXED(ContextSettings, graphicsAPI, enableVSync)
     };
 
+    /**
+     * @brief Only options the app works fine without belong here, they depend on the user and the platform. Options
+     *        the app itself depends on, like ImPlot and the dockspace, are part of the ApplicationDesc.
+     */
     struct VL_API ImGuiSettings {
-        bool useDocking = false;
         bool useViewports = false;
-        bool saveImGuiWindowData = false; // Creates imgui.ini to store window settings
+        bool saveImGuiWindowData = false; // Stores the window positions and dock layout in the appdata folder
 
-        VL_GENERATE_JSON_SERIALIZER_RELAXED(ImGuiSettings, useDocking, useViewports, saveImGuiWindowData)
+        VL_GENERATE_JSON_SERIALIZER_RELAXED(ImGuiSettings, useViewports, saveImGuiWindowData)
     };
 
 }

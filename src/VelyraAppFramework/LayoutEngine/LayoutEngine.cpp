@@ -3,6 +3,9 @@
 
 #include <VelyraAppFramework/LayoutEngine/LayoutEngine.hpp>
 #include "LayoutNode.hpp"
+#include "LayoutDocking.hpp"
+
+#include <VelyraCore/ImGui/imgui_internal.h>
 
 namespace Velyra::App {
 
@@ -64,6 +67,28 @@ namespace Velyra::App {
         draw(root, 0.0f, 0.0f, viewport->WorkSize.x, viewport->WorkSize.y);
     }
 
+    void LayoutEngine::drawDocked(const Node& root, const U32 dockSpaceID) {
+        VL_PRECONDITION(dockSpaceID != 0, "Drawing docked requires a dockspace")
+
+        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        calculate(root, 0.0f, 0.0f, viewport->WorkSize.x, viewport->WorkSize.y);
+
+        const bool reset = m_ResetDockSpace;
+        if (reset) {
+            m_ResetDockSpace = false;
+            ImGui::DockBuilderRemoveNode(dockSpaceID);
+            ImGui::DockBuilderAddNode(dockSpaceID, ImGuiDockNodeFlags_DockSpace);
+            ImGui::DockBuilderSetNodeSize(dockSpaceID, viewport->WorkSize);
+        }
+        dockNewPanels(m_Nodes, dockSpaceID, reset);
+
+        for (Size i = 0; i < m_Nodes.size(); i++) {
+            if (m_Nodes[i].type == NodeType::Panel) {
+                drawDockedPanel(i);
+            }
+        }
+    }
+
     void LayoutEngine::calculate(const Node& root, const float xPos, const float yPos, const float width, const float height) {
         m_Nodes.clear();
 
@@ -97,6 +122,7 @@ namespace Velyra::App {
 
     void LayoutEngine::resetResizes() {
         m_NodeStates.clear();
+        m_ResetDockSpace = true;
     }
 
     void LayoutEngine::calculateChildren(const Size nodeIndex) {
@@ -263,6 +289,19 @@ namespace Velyra::App {
         if (std::fabs(deltaSize.y) > 1e-4f) {
             resizeNode(nodeIndex, deltaSize.y, false, std::fabs(deltaPos.y) > 1e-4f);
         }
+    }
+
+    void LayoutEngine::drawDockedPanel(const Size nodeIndex) const {
+        // The size and position belong to the dock node, resizable is up to the user
+        const Panel& panel = m_Nodes[nodeIndex].getPanel();
+        const ImGuiWindowFlags windowFlags = panel.collapsible ? ImGuiWindowFlags_None : ImGuiWindowFlags_NoCollapse;
+        ImGui::Begin(panel.name.c_str(), nullptr, windowFlags);
+        // A window that was just docked is hidden for a frame until it has the size of its dock node. Drawing the
+        // content then would only show a few pixels wide panel to content that remembers its first size.
+        if (!ImGui::GetCurrentWindow()->Hidden) {
+            panel.drawFunction();
+        }
+        ImGui::End();
     }
 
     void LayoutEngine::resizeNode(const Size nodeIndex, const float deltaPixels, const bool horizontal, const bool towardsStart) {

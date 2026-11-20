@@ -12,6 +12,11 @@ namespace Velyra::App {
 
     struct VL_API ApplicationDesc {
         bool useImPlot = false;
+        /**
+         * @brief Covers the main window with an ImGui dockspace. Layouts are then drawn as dockable windows: the layout
+         *        tree only gives the default place of every panel, after that the user can move, tab and undock them.
+         */
+        bool useDockSpace = false;
         std::string applicationName;
         SettingsDesc settings;
     };
@@ -55,11 +60,13 @@ namespace Velyra::App {
 
         void createContext() const;
 
-        void createImGuiContext(const ApplicationDesc& appDesc) const;
+        void createImGuiContext(const ApplicationDesc& appDesc);
 
         void createAppData(const ProgramArgs& programArgs);
 
         void processEvents() const;
+
+        void drawActiveLayout(U32 dockSpaceID) const;
 
         void destroyAppData();
 
@@ -71,6 +78,9 @@ namespace Velyra::App {
 
     private:
         Utils::LogPtr m_Logger;
+
+        bool m_UseDockSpace = false;
+        std::string m_ImGuiIniFile; // ImGui keeps a pointer to the file name, so it must outlive the ImGui context
 
         Settings m_Settings;
         UP<AppData> m_AppData;

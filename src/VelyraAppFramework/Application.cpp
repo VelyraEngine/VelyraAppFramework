@@ -23,6 +23,7 @@ namespace Velyra::App {
 
     Application::Application(const ApplicationDesc &appDesc, const ProgramArgs &programArgs):
     m_Logger(Utils::getLogger(VL_APP_APPLICATION_LOGGER)),
+    m_UseDockSpace(appDesc.useDockSpace),
     m_Settings(processSettingsDesc(appDesc)) {
         createWindow(appDesc);
         createContext();
@@ -66,13 +67,9 @@ namespace Velyra::App {
                 context->onImGuiBegin();
                 m_AppLayer->mainMenuBar();
 
-                const LayoutID activeLayoutID = m_AppData->getActiveLayout();
-                if (activeLayoutID != NO_LAYOUT) {
-                    SP<Layout> activeLayout = m_AppData->getLayout(activeLayoutID);
-                    if (activeLayout) {
-                        activeLayout->draw();
-                    }
-                }
+                // Submitted after the main menu bar, so the dockspace fills the work area below it
+                const ImGuiID dockSpaceID = m_UseDockSpace ? ImGui::DockSpaceOverViewport() : 0;
+                drawActiveLayout(dockSpaceID);
                 m_AppLayer->onImGui();
                 // Draw panels before popups so that popups are always on top
                 m_AppData->drawPanels();
@@ -84,6 +81,16 @@ namespace Velyra::App {
             context->endFrame();
 
             context->swapBuffers();
+        }
+    }
+
+    void Application::drawActiveLayout(const U32 dockSpaceID) const {
+        const LayoutID activeLayoutID = m_AppData->getActiveLayout();
+        if (activeLayoutID == NO_LAYOUT) {
+            return;
+        }
+        if (const SP<Layout> activeLayout = m_AppData->getLayout(activeLayoutID)) {
+            activeLayout->draw(dockSpaceID);
         }
     }
 
@@ -120,7 +127,7 @@ namespace Velyra::App {
         context->setVerticalSynchronisation(contextSettings.enableVSync);
     }
 
-    void Application::createImGuiContext(const ApplicationDesc& appDesc) const {
+    void Application::createImGuiContext(const ApplicationDesc& appDesc) {
         VL_PRECONDITION(m_Window != nullptr, "Failed to create window");
         VL_PRECONDITION(m_Window->getContext() != nullptr, "Failed to create context");
 
@@ -129,12 +136,18 @@ namespace Velyra::App {
         const auto imGuiSettings = m_Settings.getSetting<ImGuiSettings>(SettingsKeys::IMGUI_SETTINGS);
 
         Core::ImGuiContextDesc imGuiDesc;
-        imGuiDesc.useDocking = imGuiSettings.useDocking;
+        imGuiDesc.useDocking = appDesc.useDockSpace;
         imGuiDesc.useViewports = imGuiSettings.useViewports;
         imGuiDesc.useImPlot = appDesc.useImPlot;
         context->createImGuiContext(imGuiDesc);
 
-        if (!imGuiSettings.saveImGuiWindowData) {
+        // By default ImGui writes imgui.ini to the working directory, which depends on where the app is started from
+        if (imGuiSettings.saveImGuiWindowData) {
+            const fs::path iniFile = getAppdataPath(appDesc.applicationName) / ("imgui_" + appDesc.applicationName + ".ini");
+            m_ImGuiIniFile = iniFile.string();
+            ImGui::GetIO().IniFilename = m_ImGuiIniFile.c_str();
+        }
+        else {
             ImGui::GetIO().IniFilename = nullptr;
         }
     }
@@ -171,7 +184,6 @@ namespace Velyra::App {
 
         const UP<Core::Context>& context = m_Window->getContext();
         ImGuiSettings imGuiSettings;
-        imGuiSettings.useDocking = ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable;
         imGuiSettings.useViewports = ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable;
         imGuiSettings.saveImGuiWindowData = ImGui::GetIO().IniFilename != nullptr;
         m_Settings.setSetting<ImGuiSettings>(SettingsKeys::IMGUI_SETTINGS, imGuiSettings);

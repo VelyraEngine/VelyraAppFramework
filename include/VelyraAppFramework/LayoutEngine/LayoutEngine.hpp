@@ -43,6 +43,16 @@ namespace Velyra::App {
         void draw(const Node& root);
 
         /**
+         * @brief Draws the panels of the given layout tree as dockable windows in the given dockspace. The tree only
+         *        decides the place of a panel the first time it appears, after that the user decides. Panels that
+         *        disappear from the tree keep their place, so they come back where they were. Must be called between
+         *        the ImGui begin and end of a frame, after the dockspace was submitted.
+         * @param root The root of the layout tree
+         * @param dockSpaceID The ID returned by ImGui::DockSpace() or ImGui::DockSpaceOverViewport()
+         */
+        void drawDocked(const Node& root, U32 dockSpaceID);
+
+        /**
          * @brief Only calculates the position and size of every node of the given tree, without drawing. This is done
          *        by draw() as well. The tree does not need to outlive this call.
          */
@@ -60,6 +70,7 @@ namespace Velyra::App {
 
         /**
          * @brief Forgets all resizes done by the user, so all nodes go back to the ratios of the layout description.
+         *        When drawn docked, the dockspace is cleared and built again from the description on the next frame.
          */
         void resetResizes();
 
@@ -79,6 +90,8 @@ namespace Velyra::App {
 
         void drawPanel(Size nodeIndex);
 
+        void drawDockedPanel(Size nodeIndex) const;
+
         void resizeNode(Size nodeIndex, float deltaPixels, bool horizontal, bool towardsStart);
 
     private:
@@ -92,9 +105,12 @@ namespace Velyra::App {
         std::vector<NodeID> m_PanelNameHashes;
         std::unordered_set<NodeID> m_ReportedDuplicates;
 
+        bool m_ResetDockSpace = false;
+
         VL_GET_PRIVATE_MEMBER(LayoutEngine, m_Nodes)
         VL_GET_PRIVATE_MEMBER(LayoutEngine, m_NodeStates)
         VL_GET_PRIVATE_MEMBER(LayoutEngine, m_ReportedDuplicates)
+        VL_GET_PRIVATE_MEMBER(LayoutEngine, m_ResetDockSpace)
     };
 
 }

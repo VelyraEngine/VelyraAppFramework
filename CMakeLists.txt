@@ -26,6 +26,7 @@ set(VELYRA_APP_FRAMEWORK_HEADERS
     include/VelyraAppFramework/LayoutEngine/LayoutDefinitions.hpp
     include/VelyraAppFramework/LayoutEngine/LayoutDescription.hpp
     src/VelyraAppFramework/LayoutEngine/LayoutNode.hpp
+    src/VelyraAppFramework/LayoutEngine/LayoutDocking.hpp
 
     include/VelyraAppFramework/Themes/Analyst.hpp
     include/VelyraAppFramework/Themes/Dusk.hpp
@@ -54,6 +55,7 @@ set(VELYRA_APP_FRAMEWORK_SRC
     src/VelyraAppFramework/AppInclude.cpp
 
     src/VelyraAppFramework/LayoutEngine/LayoutEngine.cpp
+    src/VelyraAppFramework/LayoutEngine/LayoutDocking.cpp
     src/VelyraAppFramework/LayoutEngine/LayoutDescription.cpp
 
     src/VelyraAppFramework/Themes/Analyst.cpp
@@ -78,6 +80,7 @@ target_link_libraries(VelyraAppFramework PUBLIC VelyraCore)
 set(VELYRA_APP_FRAMEWORK_TEST_SRC
     test/TestLayoutDescription.cpp
     test/TestLayoutEngine.cpp
+    test/TestLayoutDocking.cpp
     test/TestSettings.cpp
     test/TestJsonMerge.cpp
     test/TestTerminal.cpp

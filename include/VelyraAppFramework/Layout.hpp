@@ -8,7 +8,9 @@ namespace Velyra::App {
 
     /**
      * @brief A layout of panels that can be registered in AppData. The framework draws the active layout every frame,
-     *        between Layer::mainMenuBar() and Layer::onImGui().
+     *        between Layer::mainMenuBar() and Layer::onImGui(). Without a dockspace the panels are placed exactly as
+     *        the layout tree says. With a dockspace (ApplicationDesc::useDockSpace) the tree only gives the default
+     *        place of each panel, the user can move, tab and undock them.
      */
     class VL_API Layout {
     public:
@@ -25,14 +27,18 @@ namespace Velyra::App {
         virtual SP<Node> getLayout() = 0;
 
         /**
-         * @brief Forgets all resizes done by the user, so all panels go back to the ratios returned by getLayout().
+         * @brief Forgets all resizes done by the user, so all panels go back to the ratios returned by getLayout(). With
+         *        a dockspace (ApplicationDesc::useDockSpace), the dock layout is rebuilt from getLayout() instead.
          */
         void resetResizes();
 
     private:
         friend Application;
 
-        void draw();
+        /**
+         * @param dockSpaceID The dockspace to dock the panels in, 0 to draw them at fixed positions
+         */
+        void draw(U32 dockSpaceID);
 
     private:
         const LayoutID m_ID;
