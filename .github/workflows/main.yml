@@ -15,8 +15,14 @@ jobs:
       - name: Install dependencies
         run: bash VelyraBuildUtils/ci/install-deps-linux.sh
 
-      - name: Build and test
-        run: bash VelyraBuildUtils/ci/build-and-test.sh
+      - name: Configure
+        run: bash VelyraBuildUtils/ci/configure.sh
+
+      - name: Build
+        run: bash VelyraBuildUtils/ci/build.sh
+
+      - name: Test
+        run: bash VelyraBuildUtils/ci/test.sh
 
   build-windows:
     runs-on: windows-latest
@@ -25,6 +31,14 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Build and test
+      - name: Configure
         shell: bash
-        run: bash VelyraBuildUtils/ci/build-and-test.sh
+        run: bash VelyraBuildUtils/ci/configure.sh
+
+      - name: Build
+        shell: bash
+        run: bash VelyraBuildUtils/ci/build.sh
+
+      - name: Test
+        shell: bash
+        run: bash VelyraBuildUtils/ci/test.sh
